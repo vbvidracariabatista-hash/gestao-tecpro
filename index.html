@@ -177,31 +177,33 @@
     }
 
     @media (max-width: 900px) {
-      #inicio.card {
-  background-image: url("./fundo-mobile.png?v=1");
-  background-size: cover;
-  background-position: center center;
-  height: calc(100vh - 55px);
-  min-height: calc(100vh - 55px);
+  #inicio.card {
+    background-image: url("./fundo-mobile.png?v=5");
+    background-size: contain;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-color: #020812;
+    height: calc(100vh - 55px);
+    min-height: calc(100vh - 55px);
+  }
+
+  .menu {
+    padding: 0 10px;
+  }
+
+  .menu button {
+    padding: 14px 16px;
+    font-size: 14px;
+  }
+
+  .container {
+    padding: 0;
+  }
+
+  .card:not(#inicio) {
+    margin: 10px;
+  }
 }
-
-      .menu {
-        padding: 0 10px;
-      }
-
-      .menu button {
-        padding: 14px 16px;
-        font-size: 14px;
-      }
-
-      .container {
-        padding: 0;
-      }
-
-      .card:not(#inicio) {
-        margin: 10px;
-      }
-    }
   </style>
 </head>
 
