@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema Vidraçaria</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      margin: 0;
+      min-height: 100vh;
+      background: #001632;
+    }
+
+    header {
+      display: none;
+    }
+
+    .menu {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      flex-wrap: wrap;
+      background: rgba(0, 32, 75, 0.95);
+      padding: 0 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+      position: relative;
+      z-index: 10;
+    }
+
+    .menu button {
+      padding: 16px 24px;
+      border: none;
+      background: transparent;
+      color: white;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    .menu button:hover {
+      background: #b30000;
+    }
+
+    .container {
+      padding: 0;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.96);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+      margin-bottom: 20px;
+    }
+
+    #inicio.card {
+      background-image: url("./fundo.png?v=3");
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-color: #001632;
+
+      width: 100%;
+      height: calc(100vh - 58px);
+      min-height: calc(100vh - 58px);
+
+      margin: 0;
+      padding: 0;
+
+      border-radius: 0;
+      box-shadow: none;
+      position: relative;
+    }
+
+    .card:not(#inicio) {
+      margin: 20px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 12px;
+      margin: 6px 0;
+      box-sizing: border-box;
+    }
+
+    button.calc {
+      background: #b30000;
+      color: white;
+      border: none;
+      padding: 12px;
+      width: 100%;
+      margin-top: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    button.azul {
+      background: #003366;
+    }
+
+    button.cinza {
+      background: #444;
+    }
+
+    .resultado {
+      font-size: 24px;
+      color: green;
+      font-weight: bold;
+      margin-top: 15px;
+    }
+
+    .produto-item {
+      background: #f8f8f8;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 10px;
+      border-left: 5px solid #003366;
+      cursor: pointer;
+    }
+
+    .orcamento-item {
+      background: #f8f8f8;
+      padding: 15px;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+
+    .item-orcamento {
+      background: #eef5ff;
+      padding: 14px;
+      border-radius: 8px;
+      margin-top: 10px;
+      border-left: 5px solid #b30000;
+    }
+
+    .item-orcamento button {
+      margin-top: 8px;
+      padding: 8px;
+      border: none;
+      background: #b30000;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+
+    .acoes button,
+    .orcamento-item button,
+    .produto-item button {
+      margin-top: 8px;
+      padding: 8px;
+      border: none;
+      background: #003366;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .acoes button {
+      width: 100%;
+    }
+
+    .secao-avulso {
+      background: #fff8e1;
+      padding: 15px;
+      border-left: 5px solid #b30000;
+      border-radius: 5px;
+      margin-top: 15px;
+    }
+
+    h3 {
+      margin-top: 0;
+    }
+
+    @media (max-width: 900px) {
+      #inicio.card {
+        background-size: cover;
+        background-position: center center;
+        height: calc(100vh - 55px);
+        min-height: calc(100vh - 55px);
+      }
+
+      .menu {
+        padding: 0 10px;
+      }
+
+      .menu button {
+        padding: 14px 16px;
+        font-size: 14px;
+      }
+
+      .container {
+        padding: 0;
+      }
+
+      .card:not(#inicio) {
+        margin: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  Sistema de Orçamento Vidraçaria
+</header>
+
+<div class="menu">
+  <button onclick="mostrar('inicio')">🏠 Início</button>
+  <button onclick="novoOrcamento()">➕ Novo Orçamento</button>
+  <button onclick="mostrar('orcamentosSalvos')">📁 Orçamentos</button>
+  <button onclick="mostrar('produtos')">📦 Produtos</button>
+  <button onclick="mostrar('config')">⚙️ Config</button>
+</div>
+
+<div class="container">
+
+  <div id="inicio" class="card"></div>
+
+  <div id="orcamento" class="card" style="display:none;">
+    <h3>Novo Orçamento</h3>
+
+    <input id="cliente" placeholder="Nome do cliente">
+    <input id="telefoneCliente" placeholder="Telefone do cliente">
+    <input id="obra" placeholder="Nome da obra / ambiente">
+    <input id="enderecoObra" placeholder="Endereço da obra">
+    <input id="bairroObra" placeholder="Bairro da obra">
+
+    <select id="categoria">
+      <option value="pronta">Pronta Entrega</option>
+      <option value="engenharia">Engenharia</option>
+    </select>
+
+    <select id="tipo">
+      <optgroup label="Portas">
+        <option value="porta4_puxador">Porta 4 folhas com puxador</option>
+        <option value="porta4_sem_puxador">Porta 4 folhas sem puxador</option>
+        <option value="porta2">Porta 2 folhas</option>
+        <option value="porta_esconder">Porta de esconder</option>
+        <option value="pivotante">Porta pivotante</option>
+      </optgroup>
+      <optgroup label="Janelas">
+        <option value="janela2">Janela 2 folhas</option>
+        <option value="janela4">Janela 4 folhas</option>
+      </optgroup>
+      <optgroup label="Espelhos">
+        <option value="espelho">Espelho</option>
+      </optgroup>
+      <optgroup label="Box">
+        <option value="box">Box frontal</option>
+        <option value="box_canto">Box de canto</option>
+      </optgroup>
+    </select>
+
+    <select id="corVidro">
+      <option value="incolor">Incolor</option>
+      <option value="verde">Verde</option>
+      <option value="fume">Fumê</option>
+      <option value="bronze">Bronze</option>
+    </select>
+
+    <select id="corAluminio">
+      <option value="natural_fosco">Natural Fosco</option>
+      <option value="preto">Preto</option>
+      <option value="branco">Branco</option>
+    </select>
+
+    <select id="trilho">
+      <option value="sobreposto">Trilho Sobreposto</option>
+      <option value="embutido">Trilho Embutido</option>
+    </select>
+
+    <select id="espessura">
+      <option value="8">8mm</option>
+      <option value="10">10mm</option>
+      <option value="12">12mm</option>
+    </select>
+
+    <select id="tipoEspelho">
+      <option value="lapidado">Espelho Lapidado</option>
+      <option value="bisotado">Espelho Bisotado</option>
+      <option value="redondo">Espelho Redondo</option>
+      <option value="organico">Espelho Orgânico</option>
+    </select>
+
+    <input type="number" id="largura" placeholder="Largura (mm)">
+    <input type="number" id="altura" placeholder="Altura (mm)">
+    <input type="number" id="margem" placeholder="Margem (%)">
+
+    <div class="secao-avulso">
+      <h3>Itens Avulsos</h3>
+
+      <select id="categoriaAvulso" onchange="filtrarProdutosAvulsos()">
+        <option value="">Categoria do item avulso</option>
+        <option value="aluminio">Alumínio</option>
+        <option value="acessorio">Acessórios / Ferragens</option>
+        <option value="vidro">Vidro</option>
+        <option value="silicone">Silicone</option>
+        <option value="outros">Outros</option>
+      </select>
+
+      <select id="produtoAvulsoNome">
+        <option value="">Selecione o produto</option>
+      </select>
+
+      <select id="tipoQuantidadeAvulsa">
+        <option value="unitario">Quantidade normal</option>
+        <option value="meia_barra">Meia barra</option>
+        <option value="barra_inteira">Barra inteira</option>
+      </select>
+
+      <input type="number" id="produtoAvulsoQtd" placeholder="Quantidade" value="1">
+
+      <button class="calc" onclick="adicionarAvulso()">Adicionar Item Avulso</button>
+
+      <div id="listaAvulsos"></div>
+    </div>
+
+    <button class="calc" onclick="adicionarItemOrcamento()">➕ ADICIONAR ITEM AO ORÇAMENTO</button>
+    <button class="calc" onclick="calcularTotalOrcamento()">🧮 CALCULAR TOTAL</button>
+    <button class="calc cinza" onclick="limparItensOrcamento()">🧹 LIMPAR ITENS</button>
+    <button class="calc" onclick="salvarOrcamento()">💾 SALVAR ORÇAMENTO</button>
+
+    <div id="listaItensOrcamento"></div>
+
+    <div id="resultado"></div>
+
+    <div class="acoes">
+      <button onclick="gerarPDFCliente()">📄 PDF Cliente</button>
+      <button onclick="gerarPDFTempera()">📐 PDF Têmpera</button>
+    </div>
+  </div>
+
+  <div id="orcamentosSalvos" class="card" style="display:none;">
+    <h3>Orçamentos Salvos</h3>
+    <div id="listaOrcamentos"></div>
+  </div>
+
+  <div id="produtos" class="card" style="display:none;">
+    <h3>Produtos</h3>
+
+    <input id="nomeProduto" placeholder="Nome do produto">
+    <input id="precoProduto" placeholder="Preço">
+
+    <button class="calc" onclick="salvarProduto()">Salvar Produto</button>
+
+    <hr>
+
+    <h3>Produtos cadastrados</h3>
+    <div id="listaProdutos"></div>
+
+    <hr>
+
+    <h3>Produto selecionado</h3>
+    <input id="editarNome" placeholder="Nome do produto">
+    <input id="editarPreco" placeholder="Preço">
+
+    <button class="calc azul" onclick="editarProduto()">Editar Produto</button>
+    <button class="calc cinza" onclick="excluirProduto()">Excluir Produto</button>
+  </div>
+
+  <div id="config" class="card" style="display:none;">
+    <h3>Configurações</h3>
+
+    <label>
+      <input type="checkbox" id="usarSobra">
+      Usar sobra
+    </label>
+
+    <br><br>
+
+    <label>
+      <input type="checkbox" id="usarMeia">
+      Usar meia barra
+    </label>
+
+    <br><br>
+
+    <button class="calc" onclick="salvarConfig()">Salvar Configuração</button>
+  </div>
+
+</div>
+
+<script>
+const API = "";
+
+let ultimoOrcamento = null;
+let produtosAvulsos = [];
+let produtosCadastrados = [];
+let produtoSelecionado = null;
+let itensOrcamento = [];
+
+function mostrar(tela) {
+  document.getElementById("inicio").style.display = "none";
+  document.getElementById("orcamento").style.display = "none";
+  document.getElementById("orcamentosSalvos").style.display = "none";
+  document.getElementById("produtos").style.display = "none";
+  document.getElementById("config").style.display = "none";
+
+  document.getElementById(tela).style.display = "block";
+
+  if (tela === "orcamentosSalvos") {
+    carregarOrcamentos();
+  }
+}
+
+function novoOrcamento() {
+  limparFormularioCompleto();
+  mostrar("orcamento");
+}
+
+function limparCamposItem() {
+  document.getElementById("categoria").value = "pronta";
+  document.getElementById("tipo").value = "porta4_puxador";
+  document.getElementById("corVidro").value = "incolor";
+  document.getElementById("corAluminio").value = "natural_fosco";
+  document.getElementById("trilho").value = "sobreposto";
+  document.getElementById("espessura").value = "8";
+  document.getElementById("tipoEspelho").value = "lapidado";
+  document.getElementById("largura").value = "";
+  document.getElementById("altura").value = "";
+  document.getElementById("categoriaAvulso").value = "";
+  document.getElementById("produtoAvulsoNome").innerHTML = `<option value="">Selecione o produto</option>`;
+  document.getElementById("tipoQuantidadeAvulsa").value = "unitario";
+  document.getElementById("produtoAvulsoQtd").value = "1";
+  produtosAvulsos = [];
+  document.getElementById("listaAvulsos").innerHTML = "";
+}
+
+function limparFormularioCompleto() {
+  document.getElementById("cliente").value = "";
+  document.getElementById("telefoneCliente").value = "";
+  document.getElementById("obra").value = "";
+  document.getElementById("enderecoObra").value = "";
+  document.getElementById("bairroObra").value = "";
+  document.getElementById("margem").value = "";
+
+  limparCamposItem();
+
+  itensOrcamento = [];
+  ultimoOrcamento = null;
+
+  document.getElementById("listaItensOrcamento").innerHTML = "";
+  document.getElementById("resultado").innerHTML = "";
+
+  localStorage.removeItem("orcamentoAtual");
+}
+
+function categorizarProduto(nome) {
+  const n = String(nome || "").toLowerCase();
+
+  if (n.includes("cctp") || n.includes("pu ") || n.includes("veda") || n.includes("cantoneira")) return "aluminio";
+  if (n.includes("vidro") || n.includes("espelho") || n.includes("pivotante pe")) return "vidro";
+  if (n.includes("silicone")) return "silicone";
+  if (n.includes("roldana") || n.includes("puxador") || n.includes("fechadura") || n.includes("batedor") || n.includes("bate-fecha") || n.includes("kit") || n.includes("bucha") || n.includes("parafuso")) return "acessorio";
+
+  return "outros";
+}
+
+function filtrarProdutosAvulsos() {
+  const categoria = document.getElementById("categoriaAvulso").value;
+  const select = document.getElementById("produtoAvulsoNome");
+
+  let html = `<option value="">Selecione o produto</option>`;
+
+  produtosCadastrados.forEach(p => {
+    if (!categoria || categorizarProduto(p.nome) === categoria) {
+      html += `<option value="${p.nome}">${p.nome} - R$ ${Number(p.preco).toFixed(2)}</option>`;
+    }
+  });
+
+  select.innerHTML = html;
+}
+
+function adicionarAvulso() {
+  const nome = document.getElementById("produtoAvulsoNome").value;
+  const tipoQtd = document.getElementById("tipoQuantidadeAvulsa").value;
+  let quantidadeDigitada = Number(document.getElementById("produtoAvulsoQtd").value);
+
+  if (!nome) {
+    alert("Selecione o produto avulso");
+    return;
+  }
+
+  if (!quantidadeDigitada) quantidadeDigitada = 1;
+
+  let quantidade = quantidadeDigitada;
+  let descricaoQtd = `${quantidadeDigitada}`;
+
+  if (tipoQtd === "meia_barra") {
+    quantidade = 0.5 * quantidadeDigitada;
+    descricaoQtd = `${quantidadeDigitada} meia barra`;
+  }
+
+  if (tipoQtd === "barra_inteira") {
+    quantidade = 1 * quantidadeDigitada;
+    descricaoQtd = `${quantidadeDigitada} barra inteira`;
+  }
+
+  const produto = produtosCadastrados.find(p => p.nome === nome);
+  const preco = produto ? Number(produto.preco || 0) : 0;
+  const custo = preco * quantidade;
+
+  const resultadoAvulso = {
+    tipo: `Item avulso - ${nome}`,
+    custo_total: custo,
+    lucro: 0,
+    valor_venda: custo,
+    materiais: {
+      [nome]: {
+        quantidade,
+        unidade: "un",
+        preco,
+        custo,
+        calculo_manual: true
+      }
+    }
+  };
+
+  itensOrcamento.push({
+    nome: `Item avulso - ${nome}`,
+    tipoAvulso: true,
+    formulario: {
+      tipo: "avulso",
+      largura: "-",
+      altura: "-",
+      descricaoQtd,
+      avulsos: [{ nome, quantidade }]
+    },
+    resultado: resultadoAvulso
+  });
+
+  renderizarItensOrcamento();
+  calcularTotalOrcamento(false);
+  salvarLocal();
+
+  document.getElementById("categoriaAvulso").value = "";
+  document.getElementById("produtoAvulsoNome").innerHTML = `<option value="">Selecione o produto</option>`;
+  document.getElementById("tipoQuantidadeAvulsa").value = "unitario";
+  document.getElementById("produtoAvulsoQtd").value = "1";
+}
+
+function renderizarAvulsos() {
+  document.getElementById("listaAvulsos").innerHTML = "";
+}
+
+function removerAvulso(index) {
+  produtosAvulsos.splice(index, 1);
+  renderizarAvulsos();
+  salvarLocal();
+}
+
+function getFormularioItem() {
+  return {
+    categoria: document.getElementById("categoria").value,
+    tipo: document.getElementById("tipo").value,
+    cor: document.getElementById("corVidro").value,
+    corAluminio: document.getElementById("corAluminio").value,
+    trilho: document.getElementById("trilho").value,
+    espessura: document.getElementById("espessura").value,
+    tipoEspelho: document.getElementById("tipoEspelho").value,
+    largura: document.getElementById("largura").value,
+    altura: document.getElementById("altura").value,
+    avulsos: JSON.parse(JSON.stringify(produtosAvulsos))
+  };
+}
+
+function nomeTipo(tipo) {
+  if (tipo === "porta4" || tipo === "porta4_puxador") return "Porta 4 folhas com puxador";
+  if (tipo === "porta4_sem_puxador") return "Porta 4 folhas sem puxador";
+  if (tipo === "porta150" || tipo === "porta2") return "Porta 2 folhas";
+  if (tipo === "porta_esconder") return "Porta de esconder";
+  if (tipo === "pivotante") return "Porta pivotante";
+  if (tipo === "janela2") return "Janela 2 folhas";
+  if (tipo === "janela4") return "Janela 4 folhas";
+  if (tipo === "espelho") return "Espelho";
+  if (tipo === "box") return "Box frontal";
+  if (tipo === "box_canto") return "Box de canto";
+  return tipo;
+}
+
+async function calcularItem(item, margem = 0) {
+  const url =
+    `${API}/orcamento` +
+    `?categoria=${item.categoria}` +
+    `&tipo=${item.tipo}` +
+    `&cor=${item.cor}` +
+    `&corAluminio=${item.corAluminio}` +
+    `&trilho=${item.trilho}` +
+    `&espessura=${item.espessura}` +
+    `&tipoEspelho=${item.tipoEspelho}` +
+    `&largura=${item.largura}` +
+    `&altura=${item.altura}` +
+    `&margem=${margem}` +
+    `&avulsos=${encodeURIComponent(JSON.stringify(item.avulsos || []))}`;
+
+  const res = await fetch(url);
+  return await res.json();
+}
+
+async function adicionarItemOrcamento() {
+  const item = getFormularioItem();
+
+  if (!item.largura || !item.altura) {
+    alert("Informe largura e altura");
+    return;
+  }
+
+  const calculado = await calcularItem(item, 0);
+
+  if (calculado.erro) {
+    alert(calculado.erro);
+    return;
+  }
+
+  itensOrcamento.push({
+    nome: nomeTipo(item.tipo),
+    formulario: item,
+    resultado: calculado
+  });
+
+  limparCamposItem();
+
+  renderizarItensOrcamento();
+
+  await calcularTotalOrcamento(false);
+
+  salvarLocal();
+}
+
+function montarHtmlMateriais(materiais = {}) {
+  let html = "";
+
+  Object.keys(materiais).forEach(nome => {
+    const m = materiais[nome] || {};
+    const unidade = m.unidade ? ` ${m.unidade}` : "";
+    html += `- ${nome} | Qtd: ${m.quantidade || 0}${unidade} | R$ ${Number(m.custo || 0).toFixed(2)}<br>`;
+  });
+
+  return html;
+}
+
+function renderizarItensOrcamento() {
+  let html = "<h3>Itens do orçamento</h3>";
+
+  if (!itensOrcamento.length) {
+    html += "<p>Nenhum item adicionado ainda.</p>";
+  }
+
+  itensOrcamento.forEach((item, index) => {
+    const medida = item.tipoAvulso
+      ? `Quantidade: ${item.formulario.descricaoQtd || "-"}`
+      : `Medida: ${item.formulario.largura} x ${item.formulario.altura} mm`;
+
+    html += `
+      <div class="item-orcamento">
+        <b>${index + 1}. ${item.resultado.tipo || item.nome}</b><br>
+        ${medida}<br>
+        Valor sem margem: R$ ${Number(item.resultado.custo_total || 0).toFixed(2)}<br><br>
+        <b>Materiais calculados:</b><br>
+        ${montarHtmlMateriais(item.resultado.materiais || {})}
+        <button onclick="removerItemOrcamento(${index})">Remover este item</button>
+      </div>
+    `;
+  });
+
+  document.getElementById("listaItensOrcamento").innerHTML = html;
+}
+
+async function removerItemOrcamento(index) {
+  itensOrcamento.splice(index, 1);
+  renderizarItensOrcamento();
+  await calcularTotalOrcamento(false);
+  salvarLocal();
+}
+
+function limparItensOrcamento() {
+  if (!confirm("Limpar todos os itens deste orçamento?")) return;
+
+  itensOrcamento = [];
+  ultimoOrcamento = null;
+
+  document.getElementById("listaItensOrcamento").innerHTML = "";
+  document.getElementById("resultado").innerHTML = "";
+
+  salvarLocal();
+}
+
+async function calcularTotalOrcamento(mostrarAlerta = true) {
+  if (!itensOrcamento.length) {
+    if (mostrarAlerta) alert("Adicione pelo menos um item ao orçamento");
+    return;
+  }
+
+  const margem = Number(document.getElementById("margem").value) || 0;
+
+  let custo_total = 0;
+  let materiaisCombinados = {};
+  let html = "";
+
+  for (let i = 0; i < itensOrcamento.length; i++) {
+    const item = itensOrcamento[i];
+    let calculado;
+
+    if (item.tipoAvulso) {
+      calculado = item.resultado;
+    } else {
+      calculado = await calcularItem(item.formulario, 0);
+    }
+
+    if (calculado.erro) {
+      alert(calculado.erro);
+      return;
+    }
+
+    itensOrcamento[i].resultado = calculado;
+    custo_total += Number(calculado.custo_total || 0);
+
+    const medida = item.tipoAvulso
+      ? `Quantidade: ${item.formulario.descricaoQtd || "-"}`
+      : `Medida: ${item.formulario.largura} x ${item.formulario.altura} mm`;
+
+    html += `
+      <div class="produto-item">
+        <b>${i + 1}. ${calculado.tipo}</b><br>
+        ${medida}<br>
+        Custo do item: R$ ${Number(calculado.custo_total || 0).toFixed(2)}
+      </div>
+    `;
+
+    for (let nome in calculado.materiais || {}) {
+      materiaisCombinados[`Item ${i + 1} - ${nome}`] = calculado.materiais[nome];
+    }
+  }
+
+  const lucro = custo_total * (margem / 100);
+  const valor_venda = custo_total + lucro;
+
+  ultimoOrcamento = {
+    tipo: "Orçamento composto",
+    custo_total,
+    lucro,
+    valor_venda,
+    margem: `${margem}%`,
+    itens: itensOrcamento,
+    materiais: materiaisCombinados
+  };
+
+  renderizarItensOrcamento();
+
+  document.getElementById("resultado").innerHTML = `
+    <div class="resultado">
+      Valor Final: R$ ${Number(valor_venda).toFixed(2)}
+    </div>
+    <hr>
+    <p><b>Custo total:</b> R$ ${Number(custo_total).toFixed(2)}</p>
+    <p><b>Margem:</b> ${margem}%</p>
+    <p><b>Lucro:</b> R$ ${Number(lucro).toFixed(2)}</p>
+    <hr>
+    ${html}
+  `;
+
+  salvarLocal();
+}
+
+async function buscar() {
+  await calcularTotalOrcamento(true);
+}
+
+function salvarLocal() {
+  const dados = {
+    cliente: document.getElementById("cliente").value,
+    telefoneCliente: document.getElementById("telefoneCliente").value,
+    obra: document.getElementById("obra").value,
+    enderecoObra: document.getElementById("enderecoObra").value,
+    bairroObra: document.getElementById("bairroObra").value,
+    margem: document.getElementById("margem").value,
+    itensOrcamento,
+    produtosAvulsos,
+    ultimoOrcamento,
+    formularioAtual: getFormularioItem()
+  };
+
+  localStorage.setItem("orcamentoAtual", JSON.stringify(dados));
+}
+
+function carregarLocal() {
+  const salvo = localStorage.getItem("orcamentoAtual");
+  if (!salvo) return false;
+
+  try {
+    const dados = JSON.parse(salvo);
+
+    document.getElementById("cliente").value = dados.cliente || "";
+    document.getElementById("telefoneCliente").value = dados.telefoneCliente || "";
+    document.getElementById("obra").value = dados.obra || "";
+    document.getElementById("enderecoObra").value = dados.enderecoObra || "";
+    document.getElementById("bairroObra").value = dados.bairroObra || "";
+    document.getElementById("margem").value = dados.margem || "";
+
+    itensOrcamento = dados.itensOrcamento || [];
+    produtosAvulsos = dados.produtosAvulsos || [];
+    ultimoOrcamento = dados.ultimoOrcamento || null;
+
+    if (dados.formularioAtual) {
+      document.getElementById("categoria").value = dados.formularioAtual.categoria || "pronta";
+      document.getElementById("tipo").value = dados.formularioAtual.tipo || "porta4_puxador";
+      document.getElementById("corVidro").value = dados.formularioAtual.cor || "incolor";
+      document.getElementById("corAluminio").value = dados.formularioAtual.corAluminio || "natural_fosco";
+      document.getElementById("trilho").value = dados.formularioAtual.trilho || "sobreposto";
+      document.getElementById("espessura").value = dados.formularioAtual.espessura || "8";
+      document.getElementById("tipoEspelho").value = dados.formularioAtual.tipoEspelho || "lapidado";
+      document.getElementById("largura").value = dados.formularioAtual.largura || "";
+      document.getElementById("altura").value = dados.formularioAtual.altura || "";
+    }
+
+    renderizarAvulsos();
+    renderizarItensOrcamento();
+
+    if (ultimoOrcamento) {
+      calcularTotalOrcamento(false);
+    }
+
+    return itensOrcamento.length > 0 || !!ultimoOrcamento;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function salvarOrcamento() {
+  if (!ultimoOrcamento) {
+    await calcularTotalOrcamento(false);
+  }
+
+  if (!ultimoOrcamento) {
+    alert("Adicione itens e calcule o orçamento primeiro");
+    return;
+  }
+
+  const body = {
+    cliente: document.getElementById("cliente").value,
+    obra: document.getElementById("obra").value,
+    valor_total: ultimoOrcamento.valor_venda,
+    dados: {
+      formulario: {
+        cliente: document.getElementById("cliente").value,
+        telefoneCliente: document.getElementById("telefoneCliente").value,
+        obra: document.getElementById("obra").value,
+        enderecoObra: document.getElementById("enderecoObra").value,
+        bairroObra: document.getElementById("bairroObra").value,
+        margem: document.getElementById("margem").value
+      },
+      itensOrcamento,
+      resultado: ultimoOrcamento
+    }
+  };
+
+  await fetch(`${API}/orcamentos`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+
+  alert("Orçamento salvo com sucesso!");
+
+  limparFormularioCompleto();
+  carregarOrcamentos();
+}
+
+async function carregarOrcamentos() {
+  const res = await fetch(`${API}/orcamentos`);
+  const lista = await res.json();
+
+  let html = "";
+
+  lista.forEach(item => {
+    html += `
+      <div class="orcamento-item">
+        <b>Cliente:</b> ${item.cliente || "-"}<br>
+        <b>Obra:</b> ${item.obra || "-"}<br>
+        <b>Valor:</b> R$ ${Number(item.valor_total).toFixed(2)}
+        <br><br>
+        <button onclick="abrirOrcamento(${item.id})">Abrir</button>
+        <button onclick="excluirOrcamento(${item.id})">Excluir</button>
+      </div>
+    `;
+  });
+
+  document.getElementById("listaOrcamentos").innerHTML = html;
+}
+
+async function abrirOrcamento(id) {
+  const res = await fetch(`${API}/orcamentos/${id}`);
+  const data = await res.json();
+
+  document.getElementById("cliente").value = data.dados.formulario.cliente || "";
+  document.getElementById("telefoneCliente").value = data.dados.formulario.telefoneCliente || "";
+  document.getElementById("obra").value = data.dados.formulario.obra || "";
+  document.getElementById("enderecoObra").value = data.dados.formulario.enderecoObra || "";
+  document.getElementById("bairroObra").value = data.dados.formulario.bairroObra || "";
+  document.getElementById("margem").value = data.dados.formulario.margem || "";
+
+  itensOrcamento = data.dados.itensOrcamento || [];
+  ultimoOrcamento = data.dados.resultado || null;
+
+  renderizarItensOrcamento();
+
+  mostrar("orcamento");
+
+  await calcularTotalOrcamento(false);
+  salvarLocal();
+}
+
+async function excluirOrcamento(id) {
+  if (!confirm("Excluir orçamento?")) return;
+
+  await fetch(`${API}/orcamentos/${id}`, { method: "DELETE" });
+
+  carregarOrcamentos();
+}
+
+function enviarPostParaNovaAba(url, payload) {
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = url;
+  form.target = "_blank";
+  form.style.display = "none";
+
+  const input = document.createElement("input");
+  input.type = "hidden";
+  input.name = "payload";
+  input.value = JSON.stringify(payload);
+
+  form.appendChild(input);
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
+}
+
+async function gerarPDFCliente() {
+  if (!ultimoOrcamento) {
+    await calcularTotalOrcamento(false);
+  }
+
+  if (!ultimoOrcamento) {
+    alert("Calcule o orçamento primeiro");
+    return;
+  }
+
+  const payload = {
+    cliente: document.getElementById("cliente").value,
+    telefoneCliente: document.getElementById("telefoneCliente").value,
+    obra: document.getElementById("obra").value,
+    enderecoObra: document.getElementById("enderecoObra").value,
+    bairroObra: document.getElementById("bairroObra").value,
+    orcamento: ultimoOrcamento
+  };
+
+  enviarPostParaNovaAba(`${API}/orcamento/pdf-cliente`, payload);
+}
+
+async function gerarPDFTempera() {
+  if (!ultimoOrcamento) {
+    await calcularTotalOrcamento(false);
+  }
+
+  if (!ultimoOrcamento) {
+    alert("Calcule o orçamento primeiro");
+    return;
+  }
+
+  const payload = {
+    cliente: document.getElementById("cliente").value,
+    telefoneCliente: document.getElementById("telefoneCliente").value,
+    obra: document.getElementById("obra").value,
+    enderecoObra: document.getElementById("enderecoObra").value,
+    bairroObra: document.getElementById("bairroObra").value,
+    orcamento: ultimoOrcamento
+  };
+
+  enviarPostParaNovaAba(`${API}/orcamento/pdf-tempera`, payload);
+}
+
+async function salvarProduto() {
+  const nome = document.getElementById("nomeProduto").value;
+  let preco = document.getElementById("precoProduto").value;
+
+  preco = preco.replace(",", ".");
+
+  if (!nome || !preco) {
+    alert("Preencha nome e preço");
+    return;
+  }
+
+  await fetch(`${API}/config/produto`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nome, preco })
+  });
+
+  document.getElementById("nomeProduto").value = "";
+  document.getElementById("precoProduto").value = "";
+
+  carregarProdutos();
+}
+
+async function carregarProdutos() {
+  const res = await fetch(`${API}/config/produtos`);
+  const lista = await res.json();
+
+  produtosCadastrados = lista;
+
+  let html = "";
+
+  lista.forEach(p => {
+    html += `
+      <div class="produto-item" onclick='selecionarProduto(${JSON.stringify(p)})'>
+        <b>${p.nome}</b><br>
+        R$ ${Number(p.preco).toFixed(2)}
+      </div>
+    `;
+  });
+
+  document.getElementById("listaProdutos").innerHTML = html;
+}
+
+function selecionarProduto(produto) {
+  produtoSelecionado = produto;
+  document.getElementById("editarNome").value = produto.nome;
+  document.getElementById("editarPreco").value = produto.preco;
+}
+
+async function editarProduto() {
+  if (!produtoSelecionado) {
+    alert("Selecione um produto");
+    return;
+  }
+
+  const nome = document.getElementById("editarNome").value;
+  let preco = document.getElementById("editarPreco").value;
+  preco = preco.replace(",", ".");
+
+  await fetch(`${API}/config/produto/${produtoSelecionado.id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nome, preco })
+  });
+
+  alert("Produto editado!");
+
+  produtoSelecionado = null;
+  document.getElementById("editarNome").value = "";
+  document.getElementById("editarPreco").value = "";
+
+  carregarProdutos();
+}
+
+async function excluirProduto() {
+  if (!produtoSelecionado) {
+    alert("Selecione um produto");
+    return;
+  }
+
+  if (!confirm("Excluir produto selecionado?")) return;
+
+  await fetch(`${API}/config/produto/${produtoSelecionado.id}`, {
+    method: "DELETE"
+  });
+
+  alert("Produto excluído!");
+
+  produtoSelecionado = null;
+  document.getElementById("editarNome").value = "";
+  document.getElementById("editarPreco").value = "";
+
+  carregarProdutos();
+}
+
+async function salvarConfig() {
+  const usarSobra = document.getElementById("usarSobra").checked;
+  const usarMeia = document.getElementById("usarMeia").checked;
+
+  await fetch(`${API}/config`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ usarSobra, usarMeia })
+  });
+
+  alert("Configuração salva!");
+}
+
+async function carregarConfig() {
+  const res = await fetch(`${API}/config`);
+  const cfg = await res.json();
+
+  document.getElementById("usarSobra").checked = cfg.usarSobra;
+  document.getElementById("usarMeia").checked = cfg.usarMeia;
+}
+
+window.onload = () => {
+  carregarProdutos();
+  carregarConfig();
+
+  const voltou = carregarLocal();
+
+  if (voltou) {
+    mostrar("orcamento");
+  } else {
+    mostrar("inicio");
+  }
+};
+</script>
+
+</body>
+</html>
