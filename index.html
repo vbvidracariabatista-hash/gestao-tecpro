@@ -234,6 +234,10 @@
     .status-usuario { color: white; font-weight: bold; font-size: 13px; padding: 0 8px; }
     .menu button.sair { background: #444; border-radius: 6px; padding: 10px 14px; }
     .perfil-preview-logo { max-width: 160px; max-height: 90px; display: block; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; }
+    .link-auth { background: transparent; border: none; color: #003366; cursor: pointer; padding: 8px 0; text-decoration: underline; font-size: 14px; }
+    .config-bloco { background: #f8fbff; border-left: 5px solid #003366; padding: 15px; border-radius: 8px; margin: 15px 0; }
+    .config-bloco h4 { margin: 0 0 10px 0; color: #003366; }
+    .campo-ajuda { color: #555; font-size: 12px; margin: 4px 0 10px; }
  
   </style>
 </head>
@@ -253,7 +257,7 @@
       <input id="loginEmail" placeholder="E-mail" type="email">
       <input id="loginSenha" placeholder="Senha" type="password">
       <button class="calc" onclick="entrar()">Entrar</button>
-      <p style="font-size:12px;color:#555;">Primeiro acesso do Thiago: vb.vidracariabatista@gmail.com / senha 123456</p>
+      <button class="link-auth" onclick="recuperarSenha()" type="button">Esqueci minha senha</button>
     </div>
  
     <div id="boxCadastro" style="display:none;">
@@ -441,6 +445,23 @@
     <input id="perfilLogo" type="file" accept="image/*">
     <img id="perfilLogoPreview" class="perfil-preview-logo" style="display:none;">
     <button class="calc azul" onclick="salvarPerfilEmpresa()">Salvar Dados da Empresa</button>
+
+    <div class="config-bloco">
+      <h4>Segurança da conta</h4>
+      <label>Email atual de login:</label>
+      <input id="emailLoginAtual" disabled>
+      <input id="novoEmailLogin" placeholder="Novo email de login" type="email">
+      <input id="senhaAtualEmail" placeholder="Senha atual para alterar email" type="password">
+      <button class="calc azul" onclick="alterarEmailLogin()">Alterar email de login</button>
+      <p class="campo-ajuda">O email de login é o email usado para entrar no sistema. O e-mail da empresa acima é o que aparece no PDF.</p>
+
+      <hr>
+
+      <input id="senhaAtual" placeholder="Senha atual" type="password">
+      <input id="novaSenha" placeholder="Nova senha" type="password">
+      <input id="confirmarNovaSenha" placeholder="Confirmar nova senha" type="password">
+      <button class="calc" onclick="alterarSenha()">Alterar senha</button>
+    </div>
  
     <hr>
  
@@ -550,12 +571,18 @@ async function cadastrar() {
 }
  
 async function sair() {
+  if (!confirm("Deseja sair da sua conta?")) return;
   try {
     await fetchAutenticado(`${API}/auth/logout`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ token }) });
   } catch (e) {}
   localStorage.removeItem("tokenGestaoTecPro");
   localStorage.removeItem("orcamentoAtual");
   token = "";
+  usuarioLogado = null;
+  ultimoOrcamento = null;
+  itensOrcamento = [];
+  produtosAvulsos = [];
+  document.getElementById("loginSenha").value = "";
   mostrarTelaLogin();
 }
  
@@ -568,7 +595,8 @@ async function carregarPerfilEmpresa() {
   document.getElementById("perfilTelefone").value = p.telefone || "";
   document.getElementById("perfilEmail").value = p.email || "";
   document.getElementById("perfilEndereco").value = p.endereco || "";
-  document.getElementById("perfilCidadeBairro").value = "";
+  document.getElementById("perfilCidadeBairro").value = p.cidade_bairro || usuarioLogado?.cidade_bairro || "";
+  document.getElementById("emailLoginAtual").value = usuarioLogado?.email || p.email_login || "";
   perfilLogoBase64 = p.logo_base64 || "";
   const img = document.getElementById("perfilLogoPreview");
   if (perfilLogoBase64) {
@@ -611,6 +639,57 @@ async function salvarPerfilEmpresa() {
   if (data.erro) return alert(data.erro);
   alert("Dados da empresa salvos!");
   await carregarPerfilEmpresa();
+}
+
+async function alterarSenha() {
+  const senhaAtual = document.getElementById("senhaAtual").value;
+  const novaSenha = document.getElementById("novaSenha").value;
+  const confirmarSenha = document.getElementById("confirmarNovaSenha").value;
+
+  const res = await fetchAutenticado(`${API}/auth/change-password`, {
+    method: "POST",
+    headers: jsonHeaders(),
+    body: JSON.stringify({ senhaAtual, novaSenha, confirmarSenha })
+  });
+  const data = await res.json();
+  if (!res.ok || data.erro) return alert(data.erro || "Erro ao alterar senha");
+
+  document.getElementById("senhaAtual").value = "";
+  document.getElementById("novaSenha").value = "";
+  document.getElementById("confirmarNovaSenha").value = "";
+  alert("Senha alterada com sucesso!");
+}
+
+async function alterarEmailLogin() {
+  const novoEmail = document.getElementById("novoEmailLogin").value;
+  const senhaAtual = document.getElementById("senhaAtualEmail").value;
+
+  const res = await fetchAutenticado(`${API}/auth/change-email`, {
+    method: "POST",
+    headers: jsonHeaders(),
+    body: JSON.stringify({ novoEmail, senhaAtual })
+  });
+  const data = await res.json();
+  if (!res.ok || data.erro) return alert(data.erro || "Erro ao alterar email");
+
+  usuarioLogado.email = data.email;
+  document.getElementById("emailLoginAtual").value = data.email;
+  document.getElementById("novoEmailLogin").value = "";
+  document.getElementById("senhaAtualEmail").value = "";
+  alert("Email de login alterado com sucesso!");
+}
+
+async function recuperarSenha() {
+  const email = document.getElementById("loginEmail").value || prompt("Digite seu email de login:");
+  if (!email) return;
+
+  const res = await fetch(`${API}/auth/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email })
+  });
+  const data = await res.json();
+  alert(data.mensagem || "Solicitação registrada. Entre em contato com o suporte.");
 }
  
 document.addEventListener("change", function(e) {

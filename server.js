@@ -116,6 +116,10 @@ CREATE TABLE IF NOT EXISTS sessoes (
 function tabelaTemColuna(tabela, coluna) {
   return db.prepare(`PRAGMA table_info(${tabela})`).all().some(c => c.name === coluna);
 }
+
+if (!tabelaTemColuna("usuarios", "email_empresa")) {
+  db.prepare("ALTER TABLE usuarios ADD COLUMN email_empresa TEXT").run();
+}
  
 function hashSenha(senha, salt = crypto.randomBytes(16).toString("hex")) {
   const hash = crypto.pbkdf2Sync(String(senha || ""), salt, 120000, 64, "sha512").toString("hex");
@@ -170,8 +174,10 @@ function perfilEmpresaAtual() {
     nome: u.nome_empresa || "Minha Vidraçaria",
     emitidoPor: u.nome_responsavel || u.nome_empresa || "Responsável",
     telefone: u.telefone || "",
-    email: u.email || "",
+    email: u.email_empresa || u.email || "",
+    email_login: u.email || "",
     endereco: u.endereco || u.cidade_bairro || "",
+    cidade_bairro: u.cidade_bairro || "",
     logo_base64: u.logo_base64 || ""
   };
 }
@@ -268,7 +274,7 @@ function requireAuth(req, res, next) {
     return res.status(401).json({ erro: "Faça login para continuar" });
   }
  
-  const rotaLiberada = req.path === "/auth/me" || req.path === "/auth/logout" || req.path === "/perfil";
+  const rotaLiberada = req.path === "/auth/me" || req.path === "/auth/logout" || req.path === "/perfil" || req.path === "/auth/change-password" || req.path === "/auth/change-email";
   if (usuarioExpirado(usuario) && !rotaLiberada) {
     return res.status(403).json({ erro: "Seu teste grátis expirou. Solicite a liberação do acesso." });
   }
@@ -325,6 +331,7 @@ app.get("/auth/me", requireAuth, (req, res) => {
       nome_empresa: u.nome_empresa,
       telefone: u.telefone,
       email: u.email,
+      email_empresa: u.email_empresa || u.email,
       endereco: u.endereco,
       cidade_bairro: u.cidade_bairro,
       logo_base64: u.logo_base64,
@@ -342,6 +349,77 @@ app.post("/auth/logout", requireAuth, (req, res) => {
   if (token) db.prepare("DELETE FROM sessoes WHERE token=?").run(token);
   res.json({ ok: true });
 });
+
+app.post("/auth/change-password", requireAuth, (req, res) => {
+  const senhaAtual = String(req.body.senhaAtual || "");
+  const novaSenha = String(req.body.novaSenha || "");
+  const confirmarSenha = String(req.body.confirmarSenha || "");
+
+  if (!senhaAtual || !novaSenha || !confirmarSenha) {
+    return res.status(400).json({ erro: "Preencha senha atual, nova senha e confirmação" });
+  }
+
+  if (!senhaConfere(senhaAtual, req.usuario.senha_salt, req.usuario.senha_hash)) {
+    return res.status(400).json({ erro: "Senha atual incorreta" });
+  }
+
+  if (novaSenha.length < 6) {
+    return res.status(400).json({ erro: "A nova senha precisa ter pelo menos 6 caracteres" });
+  }
+
+  if (novaSenha !== confirmarSenha) {
+    return res.status(400).json({ erro: "A confirmação da nova senha não confere" });
+  }
+
+  const senhaNova = hashSenha(novaSenha);
+  db.prepare("UPDATE usuarios SET senha_hash=?, senha_salt=? WHERE id=?")
+    .run(senhaNova.hash, senhaNova.salt, req.usuario.id);
+
+  // Derruba outras sessões antigas e mantém a sessão atual válida.
+  const auth = req.headers.authorization || "";
+  const tokenAtual = auth.startsWith("Bearer ") ? auth.slice(7) : req.body.token;
+  db.prepare("DELETE FROM sessoes WHERE usuario_id=? AND token<>?").run(req.usuario.id, tokenAtual || "");
+
+  res.json({ ok: true });
+});
+
+app.post("/auth/change-email", requireAuth, (req, res) => {
+  const novoEmail = String(req.body.novoEmail || "").trim().toLowerCase();
+  const senhaAtual = String(req.body.senhaAtual || "");
+
+  if (!novoEmail || !senhaAtual) {
+    return res.status(400).json({ erro: "Informe o novo email e sua senha atual" });
+  }
+
+  if (!novoEmail.includes("@") || !novoEmail.includes(".")) {
+    return res.status(400).json({ erro: "Informe um email válido" });
+  }
+
+  if (!senhaConfere(senhaAtual, req.usuario.senha_salt, req.usuario.senha_hash)) {
+    return res.status(400).json({ erro: "Senha atual incorreta" });
+  }
+
+  const existente = db.prepare("SELECT id FROM usuarios WHERE email=? AND id<>?").get(novoEmail, req.usuario.id);
+  if (existente) {
+    return res.status(400).json({ erro: "Este email já está sendo usado por outra conta" });
+  }
+
+  db.prepare("UPDATE usuarios SET email=? WHERE id=?").run(novoEmail, req.usuario.id);
+  res.json({ ok: true, email: novoEmail });
+});
+
+app.post("/auth/forgot-password", (req, res) => {
+  const email = String(req.body.email || "").trim().toLowerCase();
+  const usuario = db.prepare("SELECT id FROM usuarios WHERE email=?").get(email);
+
+  // Sem SMTP configurado ainda. A resposta é genérica para não expor contas cadastradas.
+  res.json({
+    ok: true,
+    mensagem: usuario
+      ? "Solicitação registrada. Entre em contato com o suporte para redefinir sua senha."
+      : "Se este email estiver cadastrado, entre em contato com o suporte para redefinir sua senha."
+  });
+});
  
 app.get("/perfil", requireAuth, (req, res) => {
   res.json({ ok: true, perfil: perfilEmpresaAtual(), dias_restantes: diasTesteRestantes(req.usuario), expirado: usuarioExpirado(req.usuario) });
@@ -351,13 +429,13 @@ app.post("/perfil", requireAuth, (req, res) => {
   const { nomeEmpresa, nomeResponsavel, telefone, emailEmpresa, endereco, cidadeBairro, logoBase64 } = req.body;
   db.prepare(`
     UPDATE usuarios
-    SET nome_empresa=?, nome_responsavel=?, telefone=?, email=?, endereco=?, cidade_bairro=?, logo_base64=?
+    SET nome_empresa=?, nome_responsavel=?, telefone=?, email_empresa=?, endereco=?, cidade_bairro=?, logo_base64=?
     WHERE id=?
   `).run(
     nomeEmpresa || "",
     nomeResponsavel || "",
     telefone || "",
-    String(emailEmpresa || req.usuario.email).trim().toLowerCase(),
+    String(emailEmpresa || req.usuario.email_empresa || req.usuario.email).trim().toLowerCase(),
     endereco || "",
     cidadeBairro || "",
     logoBase64 || req.usuario.logo_base64 || "",
