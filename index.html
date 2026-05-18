@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
+ 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistema Vidraçaria</title>
-
+ 
   <style>
     body {
       font-family: Arial;
@@ -13,11 +13,11 @@
       min-height: 100vh;
       background: #001632;
     }
-
+ 
     header {
       display: none;
     }
-
+ 
     .menu {
       display: flex;
       justify-content: space-around;
@@ -29,7 +29,7 @@
       position: relative;
       z-index: 10;
     }
-
+ 
     .menu button {
       padding: 16px 24px;
       border: none;
@@ -39,15 +39,15 @@
       font-size: 15px;
       font-weight: bold;
     }
-
+ 
     .menu button:hover {
       background: #b30000;
     }
-
+ 
     .container {
       padding: 0;
     }
-
+ 
     .card {
       background: rgba(255, 255, 255, 0.96);
       padding: 20px;
@@ -55,30 +55,30 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.25);
       margin-bottom: 20px;
     }
-
+ 
     #inicio.card {
       background-image: url("./fundo.png?v=1");
       background-position: center center;
       background-repeat: no-repeat;
       background-size: cover;
       background-color: #001632;
-
+ 
       width: 100%;
       height: calc(100vh - 58px);
       min-height: calc(100vh - 58px);
-
+ 
       margin: 0;
       padding: 0;
-
+ 
       border-radius: 0;
       box-shadow: none;
       position: relative;
     }
-
+ 
     .card:not(#inicio) {
       margin: 20px;
     }
-
+ 
     input,
     select {
       width: 100%;
@@ -86,7 +86,7 @@
       margin: 6px 0;
       box-sizing: border-box;
     }
-
+ 
     button.calc {
       background: #b30000;
       color: white;
@@ -98,22 +98,22 @@
       cursor: pointer;
       border-radius: 5px;
     }
-
+ 
     button.azul {
       background: #003366;
     }
-
+ 
     button.cinza {
       background: #444;
     }
-
+ 
     .resultado {
       font-size: 24px;
       color: green;
       font-weight: bold;
       margin-top: 15px;
     }
-
+ 
     .produto-item {
       background: #f8f8f8;
       padding: 10px;
@@ -122,14 +122,14 @@
       border-left: 5px solid #003366;
       cursor: pointer;
     }
-
+ 
     .orcamento-item {
       background: #f8f8f8;
       padding: 15px;
       border-radius: 5px;
       margin-top: 10px;
     }
-
+ 
     .item-orcamento {
       background: #eef5ff;
       padding: 14px;
@@ -137,7 +137,7 @@
       margin-top: 10px;
       border-left: 5px solid #b30000;
     }
-
+ 
     .item-orcamento button {
       margin-top: 8px;
       padding: 8px;
@@ -147,8 +147,8 @@
       cursor: pointer;
       border-radius: 5px;
     }
-
-
+ 
+ 
     .acoes button,
     .orcamento-item button,
     .produto-item button {
@@ -160,11 +160,11 @@
       cursor: pointer;
       border-radius: 5px;
     }
-
+ 
     .acoes button {
       width: 100%;
     }
-
+ 
     .secao-avulso {
       background: #fff8e1;
       padding: 15px;
@@ -172,11 +172,11 @@
       border-radius: 5px;
       margin-top: 15px;
     }
-
+ 
     h3 {
       margin-top: 0;
     }
-
+ 
     @media (max-width: 900px) {
   #inicio.card {
     background-image: url("./fundo-mobile.png?v=10") !important;
@@ -188,59 +188,117 @@
     min-height: calc(100vh - 55px);
   }
 }
-
+ 
   .menu {
     padding: 0 10px;
   }
-
+ 
   .menu button {
     padding: 14px 16px;
     font-size: 14px;
   }
-
+ 
   .container {
     padding: 0;
   }
-
+ 
   .card:not(#inicio) {
     margin: 10px;
   }
-
+ 
+  
+ 
+    .auth-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: #020812 url("./fundo-mobile.png?v=10") center/cover no-repeat;
+      box-sizing: border-box;
+    }
+ 
+    .auth-card {
+      width: 100%;
+      max-width: 430px;
+      background: rgba(255,255,255,0.96);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.45);
+    }
+ 
+    .auth-card h2 { margin-top: 0; color: #003366; }
+    .auth-tabs { display: flex; gap: 8px; margin-bottom: 15px; }
+    .auth-tabs button { flex: 1; padding: 10px; border: none; cursor: pointer; border-radius: 8px; background: #ddd; font-weight: bold; }
+    .auth-tabs button.ativo { background: #003366; color: white; }
+    .status-usuario { color: white; font-weight: bold; font-size: 13px; padding: 0 8px; }
+    .menu button.sair { background: #444; border-radius: 6px; padding: 10px 14px; }
+    .perfil-preview-logo { max-width: 160px; max-height: 90px; display: block; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; }
+ 
   </style>
 </head>
-
+ 
 <body>
-
+ 
+<div id="auth" class="auth-wrapper">
+  <div class="auth-card">
+    <h2>Gestão Tec Pro</h2>
+    <p>Sistema completo para vidraçarias</p>
+    <div class="auth-tabs">
+      <button id="tabLogin" class="ativo" onclick="mostrarAuth('login')">Entrar</button>
+      <button id="tabCadastro" onclick="mostrarAuth('cadastro')">Criar conta</button>
+    </div>
+ 
+    <div id="boxLogin">
+      <input id="loginEmail" placeholder="E-mail" type="email">
+      <input id="loginSenha" placeholder="Senha" type="password">
+      <button class="calc" onclick="entrar()">Entrar</button>
+      <p style="font-size:12px;color:#555;">Primeiro acesso do Thiago: vb.vidracariabatista@gmail.com / senha 123456</p>
+    </div>
+ 
+    <div id="boxCadastro" style="display:none;">
+      <input id="cadNomeEmpresa" placeholder="Nome da empresa / vidraçaria">
+      <input id="cadNomeResponsavel" placeholder="Nome do responsável">
+      <input id="cadTelefone" placeholder="Telefone / WhatsApp">
+      <input id="cadEmail" placeholder="E-mail" type="email">
+      <input id="cadSenha" placeholder="Senha" type="password">
+      <button class="calc" onclick="cadastrar()">Criar conta e testar 7 dias</button>
+    </div>
+  </div>
+</div>
+ 
 <header>
   Sistema de Orçamento Vidraçaria
 </header>
-
-<div class="menu">
+ 
+<div class="menu" id="menuPrincipal" style="display:none;">
   <button onclick="mostrar('inicio')">🏠 Início</button>
   <button onclick="novoOrcamento()">➕ Novo Orçamento</button>
   <button onclick="mostrar('orcamentosSalvos')">📁 Orçamentos</button>
   <button onclick="mostrar('produtos')">📦 Produtos</button>
   <button onclick="mostrar('config')">⚙️ Config</button>
+  <span id="statusUsuario" class="status-usuario"></span>
+  <button class="sair" onclick="sair()">Sair</button>
 </div>
-
-<div class="container">
-
+ 
+<div class="container" id="appContainer" style="display:none;">
+ 
   <div id="inicio" class="card"></div>
-
+ 
   <div id="orcamento" class="card" style="display:none;">
     <h3>Novo Orçamento</h3>
-
+ 
     <input id="cliente" placeholder="Nome do cliente">
     <input id="telefoneCliente" placeholder="Telefone do cliente">
     <input id="obra" placeholder="Nome da obra / ambiente">
     <input id="enderecoObra" placeholder="Endereço da obra">
     <input id="bairroObra" placeholder="Bairro da obra">
-
+ 
     <select id="categoria">
       <option value="pronta">Pronta Entrega</option>
       <option value="engenharia">Engenharia</option>
     </select>
-
+ 
     <select id="tipo">
       <optgroup label="Portas">
         <option value="porta4_puxador">Porta 4 folhas com puxador</option>
@@ -261,45 +319,45 @@
         <option value="box_canto">Box de canto</option>
       </optgroup>
     </select>
-
+ 
     <select id="corVidro">
       <option value="incolor">Incolor</option>
       <option value="verde">Verde</option>
       <option value="fume">Fumê</option>
       <option value="bronze">Bronze</option>
     </select>
-
+ 
     <select id="corAluminio">
       <option value="natural_fosco">Natural Fosco</option>
       <option value="preto">Preto</option>
       <option value="branco">Branco</option>
     </select>
-
+ 
     <select id="trilho">
       <option value="sobreposto">Trilho Sobreposto</option>
       <option value="embutido">Trilho Embutido</option>
     </select>
-
+ 
     <select id="espessura">
       <option value="8">8mm</option>
       <option value="10">10mm</option>
       <option value="12">12mm</option>
     </select>
-
+ 
     <select id="tipoEspelho">
       <option value="lapidado">Espelho Lapidado</option>
       <option value="bisotado">Espelho Bisotado</option>
       <option value="redondo">Espelho Redondo</option>
       <option value="organico">Espelho Orgânico</option>
     </select>
-
+ 
     <input type="number" id="largura" placeholder="Largura (mm)">
     <input type="number" id="altura" placeholder="Altura (mm)">
     <input type="number" id="margem" placeholder="Margem (%)">
-
+ 
     <div class="secao-avulso">
       <h3>Itens Avulsos</h3>
-
+ 
       <select id="categoriaAvulso" onchange="filtrarProdutosAvulsos()">
         <option value="">Categoria do item avulso</option>
         <option value="aluminio">Alumínio</option>
@@ -308,117 +366,309 @@
         <option value="silicone">Silicone</option>
         <option value="outros">Outros</option>
       </select>
-
+ 
       <select id="produtoAvulsoNome">
         <option value="">Selecione o produto</option>
       </select>
-
+ 
       <select id="tipoQuantidadeAvulsa">
         <option value="unitario">Quantidade normal</option>
         <option value="meia_barra">Meia barra</option>
         <option value="barra_inteira">Barra inteira</option>
       </select>
-
+ 
       <input type="number" id="produtoAvulsoQtd" placeholder="Quantidade" value="1">
-
+ 
       <button class="calc" onclick="adicionarAvulso()">Adicionar Item Avulso</button>
-
+ 
       <div id="listaAvulsos"></div>
     </div>
-
+ 
     <button class="calc" onclick="adicionarItemOrcamento()">➕ ADICIONAR ITEM AO ORÇAMENTO</button>
     <button class="calc" onclick="calcularTotalOrcamento()">🧮 CALCULAR TOTAL</button>
     <button class="calc cinza" onclick="limparItensOrcamento()">🧹 LIMPAR ITENS</button>
     <button class="calc" onclick="salvarOrcamento()">💾 SALVAR ORÇAMENTO</button>
-
+ 
     <div id="listaItensOrcamento"></div>
-
+ 
     <div id="resultado"></div>
-
+ 
     <div class="acoes">
       <button onclick="gerarPDFCliente()">📄 PDF Cliente</button>
       <button onclick="gerarPDFTempera()">📐 PDF Têmpera</button>
     </div>
   </div>
-
+ 
   <div id="orcamentosSalvos" class="card" style="display:none;">
     <h3>Orçamentos Salvos</h3>
     <div id="listaOrcamentos"></div>
   </div>
-
+ 
   <div id="produtos" class="card" style="display:none;">
     <h3>Produtos</h3>
-
+ 
     <input id="nomeProduto" placeholder="Nome do produto">
     <input id="precoProduto" placeholder="Preço">
-
+ 
     <button class="calc" onclick="salvarProduto()">Salvar Produto</button>
-
+ 
     <hr>
-
+ 
     <h3>Produtos cadastrados</h3>
     <div id="listaProdutos"></div>
-
+ 
     <hr>
-
+ 
     <h3>Produto selecionado</h3>
     <input id="editarNome" placeholder="Nome do produto">
     <input id="editarPreco" placeholder="Preço">
-
+ 
     <button class="calc azul" onclick="editarProduto()">Editar Produto</button>
     <button class="calc cinza" onclick="excluirProduto()">Excluir Produto</button>
   </div>
-
+ 
   <div id="config" class="card" style="display:none;">
     <h3>Configurações</h3>
-
+ 
+    <h3>Dados da empresa</h3>
+    <input id="perfilNomeEmpresa" placeholder="Nome da empresa">
+    <input id="perfilNomeResponsavel" placeholder="Nome do responsável">
+    <input id="perfilTelefone" placeholder="Telefone / WhatsApp">
+    <input id="perfilEmail" placeholder="E-mail da empresa">
+    <input id="perfilEndereco" placeholder="Endereço">
+    <input id="perfilCidadeBairro" placeholder="Cidade / Bairro">
+    <label>Logo da empresa para PDF:</label>
+    <input id="perfilLogo" type="file" accept="image/*">
+    <img id="perfilLogoPreview" class="perfil-preview-logo" style="display:none;">
+    <button class="calc azul" onclick="salvarPerfilEmpresa()">Salvar Dados da Empresa</button>
+ 
+    <hr>
+ 
     <label>
       <input type="checkbox" id="usarSobra">
       Usar sobra
     </label>
-
+ 
     <br><br>
-
+ 
     <label>
       <input type="checkbox" id="usarMeia">
       Usar meia barra
     </label>
-
+ 
     <br><br>
-
+ 
     <button class="calc" onclick="salvarConfig()">Salvar Configuração</button>
   </div>
-
+ 
 </div>
-
+ 
 <script>
 const API = "";
-
+ 
+let token = localStorage.getItem("tokenGestaoTecPro") || "";
+let usuarioLogado = null;
+let perfilLogoBase64 = "";
+ 
+function authHeaders(extra = {}) {
+  return { ...extra, Authorization: `Bearer ${token}` };
+}
+ 
+function jsonHeaders() {
+  return authHeaders({ "Content-Type": "application/json" });
+}
+ 
+async function fetchAutenticado(url, opcoes = {}) {
+  opcoes.headers = authHeaders(opcoes.headers || {});
+  const res = await fetch(url, opcoes);
+  if (res.status === 401) {
+    localStorage.removeItem("tokenGestaoTecPro");
+    token = "";
+    mostrarTelaLogin();
+    throw new Error("Sessão expirada");
+  }
+  if (res.status === 403) {
+    const data = await res.json().catch(() => ({ erro: "Acesso bloqueado" }));
+    alert(data.erro || "Acesso bloqueado");
+    throw new Error(data.erro || "Acesso bloqueado");
+  }
+  return res;
+}
+ 
+function mostrarAuth(tipo) {
+  document.getElementById("boxLogin").style.display = tipo === "login" ? "block" : "none";
+  document.getElementById("boxCadastro").style.display = tipo === "cadastro" ? "block" : "none";
+  document.getElementById("tabLogin").classList.toggle("ativo", tipo === "login");
+  document.getElementById("tabCadastro").classList.toggle("ativo", tipo === "cadastro");
+}
+ 
+function mostrarTelaLogin() {
+  document.getElementById("auth").style.display = "flex";
+  document.getElementById("menuPrincipal").style.display = "none";
+  document.getElementById("appContainer").style.display = "none";
+}
+ 
+function mostrarSistema() {
+  document.getElementById("auth").style.display = "none";
+  document.getElementById("menuPrincipal").style.display = "flex";
+  document.getElementById("appContainer").style.display = "block";
+}
+ 
+async function entrar() {
+  const email = document.getElementById("loginEmail").value;
+  const senha = document.getElementById("loginSenha").value;
+  const res = await fetch(`${API}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, senha })
+  });
+  const data = await res.json();
+  if (!res.ok || data.erro) return alert(data.erro || "Erro ao entrar");
+  token = data.token;
+  localStorage.setItem("tokenGestaoTecPro", token);
+  await iniciarSistemaLogado();
+}
+ 
+async function cadastrar() {
+  const body = {
+    nomeEmpresa: document.getElementById("cadNomeEmpresa").value,
+    nomeResponsavel: document.getElementById("cadNomeResponsavel").value,
+    telefone: document.getElementById("cadTelefone").value,
+    email: document.getElementById("cadEmail").value,
+    senha: document.getElementById("cadSenha").value
+  };
+  const res = await fetch(`${API}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (!res.ok || data.erro) return alert(data.erro || "Erro ao cadastrar");
+  token = data.token;
+  localStorage.setItem("tokenGestaoTecPro", token);
+  await iniciarSistemaLogado();
+}
+ 
+async function sair() {
+  try {
+    await fetchAutenticado(`${API}/auth/logout`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ token }) });
+  } catch (e) {}
+  localStorage.removeItem("tokenGestaoTecPro");
+  localStorage.removeItem("orcamentoAtual");
+  token = "";
+  mostrarTelaLogin();
+}
+ 
+async function carregarPerfilEmpresa() {
+  const res = await fetchAutenticado(`${API}/perfil`);
+  const data = await res.json();
+  const p = data.perfil || {};
+  document.getElementById("perfilNomeEmpresa").value = p.nome || "";
+  document.getElementById("perfilNomeResponsavel").value = p.emitidoPor || "";
+  document.getElementById("perfilTelefone").value = p.telefone || "";
+  document.getElementById("perfilEmail").value = p.email || "";
+  document.getElementById("perfilEndereco").value = p.endereco || "";
+  document.getElementById("perfilCidadeBairro").value = "";
+  perfilLogoBase64 = p.logo_base64 || "";
+  const img = document.getElementById("perfilLogoPreview");
+  if (perfilLogoBase64) {
+    img.src = perfilLogoBase64;
+    img.style.display = "block";
+  } else {
+    img.style.display = "none";
+  }
+  document.getElementById("statusUsuario").innerText = data.expirado ? "Teste expirado" : `Teste: ${data.dias_restantes} dia(s)`;
+}
+ 
+function lerArquivoComoBase64(input) {
+  return new Promise((resolve) => {
+    const file = input.files && input.files[0];
+    if (!file) return resolve(perfilLogoBase64 || "");
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(file);
+  });
+}
+ 
+async function salvarPerfilEmpresa() {
+  const logoBase64 = await lerArquivoComoBase64(document.getElementById("perfilLogo"));
+  const body = {
+    nomeEmpresa: document.getElementById("perfilNomeEmpresa").value,
+    nomeResponsavel: document.getElementById("perfilNomeResponsavel").value,
+    telefone: document.getElementById("perfilTelefone").value,
+    emailEmpresa: document.getElementById("perfilEmail").value,
+    endereco: document.getElementById("perfilEndereco").value,
+    cidadeBairro: document.getElementById("perfilCidadeBairro").value,
+    logoBase64
+  };
+ 
+  const res = await fetchAutenticado(`${API}/perfil`, {
+    method: "POST",
+    headers: jsonHeaders(),
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (data.erro) return alert(data.erro);
+  alert("Dados da empresa salvos!");
+  await carregarPerfilEmpresa();
+}
+ 
+document.addEventListener("change", function(e) {
+  if (e.target && e.target.id === "perfilLogo") {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      perfilLogoBase64 = reader.result;
+      const img = document.getElementById("perfilLogoPreview");
+      img.src = perfilLogoBase64;
+      img.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  }
+});
+ 
+async function iniciarSistemaLogado() {
+  try {
+    const res = await fetchAutenticado(`${API}/auth/me`);
+    const data = await res.json();
+    usuarioLogado = data.usuario;
+    mostrarSistema();
+    await carregarProdutos();
+    await carregarConfig();
+    await carregarPerfilEmpresa();
+    const voltou = carregarLocal();
+    mostrar(voltou ? "orcamento" : "inicio");
+  } catch (e) {
+    mostrarTelaLogin();
+  }
+}
+ 
 let ultimoOrcamento = null;
 let produtosAvulsos = [];
 let produtosCadastrados = [];
 let produtoSelecionado = null;
 let itensOrcamento = [];
-
+ 
 function mostrar(tela) {
   document.getElementById("inicio").style.display = "none";
   document.getElementById("orcamento").style.display = "none";
   document.getElementById("orcamentosSalvos").style.display = "none";
   document.getElementById("produtos").style.display = "none";
   document.getElementById("config").style.display = "none";
-
+ 
   document.getElementById(tela).style.display = "block";
-
+ 
   if (tela === "orcamentosSalvos") {
     carregarOrcamentos();
   }
 }
-
+ 
 function novoOrcamento() {
   limparFormularioCompleto();
   mostrar("orcamento");
 }
-
+ 
 function limparCamposItem() {
   document.getElementById("categoria").value = "pronta";
   document.getElementById("tipo").value = "porta4_puxador";
@@ -436,7 +686,7 @@ function limparCamposItem() {
   produtosAvulsos = [];
   document.getElementById("listaAvulsos").innerHTML = "";
 }
-
+ 
 function limparFormularioCompleto() {
   document.getElementById("cliente").value = "";
   document.getElementById("telefoneCliente").value = "";
@@ -444,73 +694,73 @@ function limparFormularioCompleto() {
   document.getElementById("enderecoObra").value = "";
   document.getElementById("bairroObra").value = "";
   document.getElementById("margem").value = "";
-
+ 
   limparCamposItem();
-
+ 
   itensOrcamento = [];
   ultimoOrcamento = null;
-
+ 
   document.getElementById("listaItensOrcamento").innerHTML = "";
   document.getElementById("resultado").innerHTML = "";
-
+ 
   localStorage.removeItem("orcamentoAtual");
 }
-
+ 
 function categorizarProduto(nome) {
   const n = String(nome || "").toLowerCase();
-
+ 
   if (n.includes("cctp") || n.includes("pu ") || n.includes("veda") || n.includes("cantoneira")) return "aluminio";
   if (n.includes("vidro") || n.includes("espelho") || n.includes("pivotante pe")) return "vidro";
   if (n.includes("silicone")) return "silicone";
   if (n.includes("roldana") || n.includes("puxador") || n.includes("fechadura") || n.includes("batedor") || n.includes("bate-fecha") || n.includes("kit") || n.includes("bucha") || n.includes("parafuso")) return "acessorio";
-
+ 
   return "outros";
 }
-
+ 
 function filtrarProdutosAvulsos() {
   const categoria = document.getElementById("categoriaAvulso").value;
   const select = document.getElementById("produtoAvulsoNome");
-
+ 
   let html = `<option value="">Selecione o produto</option>`;
-
+ 
   produtosCadastrados.forEach(p => {
     if (!categoria || categorizarProduto(p.nome) === categoria) {
       html += `<option value="${p.nome}">${p.nome} - R$ ${Number(p.preco).toFixed(2)}</option>`;
     }
   });
-
+ 
   select.innerHTML = html;
 }
-
+ 
 function adicionarAvulso() {
   const nome = document.getElementById("produtoAvulsoNome").value;
   const tipoQtd = document.getElementById("tipoQuantidadeAvulsa").value;
   let quantidadeDigitada = Number(document.getElementById("produtoAvulsoQtd").value);
-
+ 
   if (!nome) {
     alert("Selecione o produto avulso");
     return;
   }
-
+ 
   if (!quantidadeDigitada) quantidadeDigitada = 1;
-
+ 
   let quantidade = quantidadeDigitada;
   let descricaoQtd = `${quantidadeDigitada}`;
-
+ 
   if (tipoQtd === "meia_barra") {
     quantidade = 0.5 * quantidadeDigitada;
     descricaoQtd = `${quantidadeDigitada} meia barra`;
   }
-
+ 
   if (tipoQtd === "barra_inteira") {
     quantidade = 1 * quantidadeDigitada;
     descricaoQtd = `${quantidadeDigitada} barra inteira`;
   }
-
+ 
   const produto = produtosCadastrados.find(p => p.nome === nome);
   const preco = produto ? Number(produto.preco || 0) : 0;
   const custo = preco * quantidade;
-
+ 
   const resultadoAvulso = {
     tipo: `Item avulso - ${nome}`,
     custo_total: custo,
@@ -526,7 +776,7 @@ function adicionarAvulso() {
       }
     }
   };
-
+ 
   itensOrcamento.push({
     nome: `Item avulso - ${nome}`,
     tipoAvulso: true,
@@ -539,27 +789,27 @@ function adicionarAvulso() {
     },
     resultado: resultadoAvulso
   });
-
+ 
   renderizarItensOrcamento();
   calcularTotalOrcamento(false);
   salvarLocal();
-
+ 
   document.getElementById("categoriaAvulso").value = "";
   document.getElementById("produtoAvulsoNome").innerHTML = `<option value="">Selecione o produto</option>`;
   document.getElementById("tipoQuantidadeAvulsa").value = "unitario";
   document.getElementById("produtoAvulsoQtd").value = "1";
 }
-
+ 
 function renderizarAvulsos() {
   document.getElementById("listaAvulsos").innerHTML = "";
 }
-
+ 
 function removerAvulso(index) {
   produtosAvulsos.splice(index, 1);
   renderizarAvulsos();
   salvarLocal();
 }
-
+ 
 function getFormularioItem() {
   return {
     categoria: document.getElementById("categoria").value,
@@ -574,7 +824,7 @@ function getFormularioItem() {
     avulsos: JSON.parse(JSON.stringify(produtosAvulsos))
   };
 }
-
+ 
 function nomeTipo(tipo) {
   if (tipo === "porta4" || tipo === "porta4_puxador") return "Porta 4 folhas com puxador";
   if (tipo === "porta4_sem_puxador") return "Porta 4 folhas sem puxador";
@@ -588,7 +838,7 @@ function nomeTipo(tipo) {
   if (tipo === "box_canto") return "Box de canto";
   return tipo;
 }
-
+ 
 async function calcularItem(item, margem = 0) {
   const url =
     `${API}/orcamento` +
@@ -603,65 +853,65 @@ async function calcularItem(item, margem = 0) {
     `&altura=${item.altura}` +
     `&margem=${margem}` +
     `&avulsos=${encodeURIComponent(JSON.stringify(item.avulsos || []))}`;
-
-  const res = await fetch(url);
+ 
+  const res = await fetchAutenticado(url);
   return await res.json();
 }
-
+ 
 async function adicionarItemOrcamento() {
   const item = getFormularioItem();
-
+ 
   if (!item.largura || !item.altura) {
     alert("Informe largura e altura");
     return;
   }
-
+ 
   const calculado = await calcularItem(item, 0);
-
+ 
   if (calculado.erro) {
     alert(calculado.erro);
     return;
   }
-
+ 
   itensOrcamento.push({
     nome: nomeTipo(item.tipo),
     formulario: item,
     resultado: calculado
   });
-
+ 
   limparCamposItem();
-
+ 
   renderizarItensOrcamento();
-
+ 
   await calcularTotalOrcamento(false);
-
+ 
   salvarLocal();
 }
-
+ 
 function montarHtmlMateriais(materiais = {}) {
   let html = "";
-
+ 
   Object.keys(materiais).forEach(nome => {
     const m = materiais[nome] || {};
     const unidade = m.unidade ? ` ${m.unidade}` : "";
     html += `- ${nome} | Qtd: ${m.quantidade || 0}${unidade} | R$ ${Number(m.custo || 0).toFixed(2)}<br>`;
   });
-
+ 
   return html;
 }
-
+ 
 function renderizarItensOrcamento() {
   let html = "<h3>Itens do orçamento</h3>";
-
+ 
   if (!itensOrcamento.length) {
     html += "<p>Nenhum item adicionado ainda.</p>";
   }
-
+ 
   itensOrcamento.forEach((item, index) => {
     const medida = item.tipoAvulso
       ? `Quantidade: ${item.formulario.descricaoQtd || "-"}`
       : `Medida: ${item.formulario.largura} x ${item.formulario.altura} mm`;
-
+ 
     html += `
       <div class="item-orcamento">
         <b>${index + 1}. ${item.resultado.tipo || item.nome}</b><br>
@@ -673,63 +923,63 @@ function renderizarItensOrcamento() {
       </div>
     `;
   });
-
+ 
   document.getElementById("listaItensOrcamento").innerHTML = html;
 }
-
+ 
 async function removerItemOrcamento(index) {
   itensOrcamento.splice(index, 1);
   renderizarItensOrcamento();
   await calcularTotalOrcamento(false);
   salvarLocal();
 }
-
+ 
 function limparItensOrcamento() {
   if (!confirm("Limpar todos os itens deste orçamento?")) return;
-
+ 
   itensOrcamento = [];
   ultimoOrcamento = null;
-
+ 
   document.getElementById("listaItensOrcamento").innerHTML = "";
   document.getElementById("resultado").innerHTML = "";
-
+ 
   salvarLocal();
 }
-
+ 
 async function calcularTotalOrcamento(mostrarAlerta = true) {
   if (!itensOrcamento.length) {
     if (mostrarAlerta) alert("Adicione pelo menos um item ao orçamento");
     return;
   }
-
+ 
   const margem = Number(document.getElementById("margem").value) || 0;
-
+ 
   let custo_total = 0;
   let materiaisCombinados = {};
   let html = "";
-
+ 
   for (let i = 0; i < itensOrcamento.length; i++) {
     const item = itensOrcamento[i];
     let calculado;
-
+ 
     if (item.tipoAvulso) {
       calculado = item.resultado;
     } else {
       calculado = await calcularItem(item.formulario, 0);
     }
-
+ 
     if (calculado.erro) {
       alert(calculado.erro);
       return;
     }
-
+ 
     itensOrcamento[i].resultado = calculado;
     custo_total += Number(calculado.custo_total || 0);
-
+ 
     const medida = item.tipoAvulso
       ? `Quantidade: ${item.formulario.descricaoQtd || "-"}`
       : `Medida: ${item.formulario.largura} x ${item.formulario.altura} mm`;
-
+ 
     html += `
       <div class="produto-item">
         <b>${i + 1}. ${calculado.tipo}</b><br>
@@ -737,15 +987,15 @@ async function calcularTotalOrcamento(mostrarAlerta = true) {
         Custo do item: R$ ${Number(calculado.custo_total || 0).toFixed(2)}
       </div>
     `;
-
+ 
     for (let nome in calculado.materiais || {}) {
       materiaisCombinados[`Item ${i + 1} - ${nome}`] = calculado.materiais[nome];
     }
   }
-
+ 
   const lucro = custo_total * (margem / 100);
   const valor_venda = custo_total + lucro;
-
+ 
   ultimoOrcamento = {
     tipo: "Orçamento composto",
     custo_total,
@@ -755,9 +1005,9 @@ async function calcularTotalOrcamento(mostrarAlerta = true) {
     itens: itensOrcamento,
     materiais: materiaisCombinados
   };
-
+ 
   renderizarItensOrcamento();
-
+ 
   document.getElementById("resultado").innerHTML = `
     <div class="resultado">
       Valor Final: R$ ${Number(valor_venda).toFixed(2)}
@@ -769,14 +1019,14 @@ async function calcularTotalOrcamento(mostrarAlerta = true) {
     <hr>
     ${html}
   `;
-
+ 
   salvarLocal();
 }
-
+ 
 async function buscar() {
   await calcularTotalOrcamento(true);
 }
-
+ 
 function salvarLocal() {
   const dados = {
     cliente: document.getElementById("cliente").value,
@@ -790,28 +1040,28 @@ function salvarLocal() {
     ultimoOrcamento,
     formularioAtual: getFormularioItem()
   };
-
+ 
   localStorage.setItem("orcamentoAtual", JSON.stringify(dados));
 }
-
+ 
 function carregarLocal() {
   const salvo = localStorage.getItem("orcamentoAtual");
   if (!salvo) return false;
-
+ 
   try {
     const dados = JSON.parse(salvo);
-
+ 
     document.getElementById("cliente").value = dados.cliente || "";
     document.getElementById("telefoneCliente").value = dados.telefoneCliente || "";
     document.getElementById("obra").value = dados.obra || "";
     document.getElementById("enderecoObra").value = dados.enderecoObra || "";
     document.getElementById("bairroObra").value = dados.bairroObra || "";
     document.getElementById("margem").value = dados.margem || "";
-
+ 
     itensOrcamento = dados.itensOrcamento || [];
     produtosAvulsos = dados.produtosAvulsos || [];
     ultimoOrcamento = dados.ultimoOrcamento || null;
-
+ 
     if (dados.formularioAtual) {
       document.getElementById("categoria").value = dados.formularioAtual.categoria || "pronta";
       document.getElementById("tipo").value = dados.formularioAtual.tipo || "porta4_puxador";
@@ -823,30 +1073,30 @@ function carregarLocal() {
       document.getElementById("largura").value = dados.formularioAtual.largura || "";
       document.getElementById("altura").value = dados.formularioAtual.altura || "";
     }
-
+ 
     renderizarAvulsos();
     renderizarItensOrcamento();
-
+ 
     if (ultimoOrcamento) {
       calcularTotalOrcamento(false);
     }
-
+ 
     return itensOrcamento.length > 0 || !!ultimoOrcamento;
   } catch (e) {
     return false;
   }
 }
-
+ 
 async function salvarOrcamento() {
   if (!ultimoOrcamento) {
     await calcularTotalOrcamento(false);
   }
-
+ 
   if (!ultimoOrcamento) {
     alert("Adicione itens e calcule o orçamento primeiro");
     return;
   }
-
+ 
   const body = {
     cliente: document.getElementById("cliente").value,
     obra: document.getElementById("obra").value,
@@ -864,25 +1114,25 @@ async function salvarOrcamento() {
       resultado: ultimoOrcamento
     }
   };
-
-  await fetch(`${API}/orcamentos`, {
+ 
+  await fetchAutenticado(`${API}/orcamentos`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: jsonHeaders(),
     body: JSON.stringify(body)
   });
-
+ 
   alert("Orçamento salvo com sucesso!");
-
+ 
   limparFormularioCompleto();
   carregarOrcamentos();
 }
-
+ 
 async function carregarOrcamentos() {
-  const res = await fetch(`${API}/orcamentos`);
+  const res = await fetchAutenticado(`${API}/orcamentos`);
   const lista = await res.json();
-
+ 
   let html = "";
-
+ 
   lista.forEach(item => {
     html += `
       <div class="orcamento-item">
@@ -895,68 +1145,74 @@ async function carregarOrcamentos() {
       </div>
     `;
   });
-
+ 
   document.getElementById("listaOrcamentos").innerHTML = html;
 }
-
+ 
 async function abrirOrcamento(id) {
-  const res = await fetch(`${API}/orcamentos/${id}`);
+  const res = await fetchAutenticado(`${API}/orcamentos/${id}`);
   const data = await res.json();
-
+ 
   document.getElementById("cliente").value = data.dados.formulario.cliente || "";
   document.getElementById("telefoneCliente").value = data.dados.formulario.telefoneCliente || "";
   document.getElementById("obra").value = data.dados.formulario.obra || "";
   document.getElementById("enderecoObra").value = data.dados.formulario.enderecoObra || "";
   document.getElementById("bairroObra").value = data.dados.formulario.bairroObra || "";
   document.getElementById("margem").value = data.dados.formulario.margem || "";
-
+ 
   itensOrcamento = data.dados.itensOrcamento || [];
   ultimoOrcamento = data.dados.resultado || null;
-
+ 
   renderizarItensOrcamento();
-
+ 
   mostrar("orcamento");
-
+ 
   await calcularTotalOrcamento(false);
   salvarLocal();
 }
-
+ 
 async function excluirOrcamento(id) {
   if (!confirm("Excluir orçamento?")) return;
-
-  await fetch(`${API}/orcamentos/${id}`, { method: "DELETE" });
-
+ 
+  await fetchAutenticado(`${API}/orcamentos/${id}`, { method: "DELETE" });
+ 
   carregarOrcamentos();
 }
-
+ 
 function enviarPostParaNovaAba(url, payload) {
   const form = document.createElement("form");
   form.method = "POST";
   form.action = url;
   form.target = "_blank";
   form.style.display = "none";
-
+ 
   const input = document.createElement("input");
   input.type = "hidden";
   input.name = "payload";
   input.value = JSON.stringify(payload);
-
+ 
+  const inputToken = document.createElement("input");
+  inputToken.type = "hidden";
+  inputToken.name = "token";
+  inputToken.value = token;
+ 
   form.appendChild(input);
+  form.appendChild(inputToken);
   document.body.appendChild(form);
   form.submit();
   document.body.removeChild(form);
 }
-
+ 
 async function gerarPDFCliente() {
   if (!ultimoOrcamento) {
     await calcularTotalOrcamento(false);
   }
-
+ 
   if (!ultimoOrcamento) {
     alert("Calcule o orçamento primeiro");
     return;
   }
-
+ 
   const payload = {
     cliente: document.getElementById("cliente").value,
     telefoneCliente: document.getElementById("telefoneCliente").value,
@@ -965,20 +1221,20 @@ async function gerarPDFCliente() {
     bairroObra: document.getElementById("bairroObra").value,
     orcamento: ultimoOrcamento
   };
-
+ 
   enviarPostParaNovaAba(`${API}/orcamento/pdf-cliente`, payload);
 }
-
+ 
 async function gerarPDFTempera() {
   if (!ultimoOrcamento) {
     await calcularTotalOrcamento(false);
   }
-
+ 
   if (!ultimoOrcamento) {
     alert("Calcule o orçamento primeiro");
     return;
   }
-
+ 
   const payload = {
     cliente: document.getElementById("cliente").value,
     telefoneCliente: document.getElementById("telefoneCliente").value,
@@ -987,41 +1243,41 @@ async function gerarPDFTempera() {
     bairroObra: document.getElementById("bairroObra").value,
     orcamento: ultimoOrcamento
   };
-
+ 
   enviarPostParaNovaAba(`${API}/orcamento/pdf-tempera`, payload);
 }
-
+ 
 async function salvarProduto() {
   const nome = document.getElementById("nomeProduto").value;
   let preco = document.getElementById("precoProduto").value;
-
+ 
   preco = preco.replace(",", ".");
-
+ 
   if (!nome || !preco) {
     alert("Preencha nome e preço");
     return;
   }
-
-  await fetch(`${API}/config/produto`, {
+ 
+  await fetchAutenticado(`${API}/config/produto`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: jsonHeaders(),
     body: JSON.stringify({ nome, preco })
   });
-
+ 
   document.getElementById("nomeProduto").value = "";
   document.getElementById("precoProduto").value = "";
-
+ 
   carregarProdutos();
 }
-
+ 
 async function carregarProdutos() {
-  const res = await fetch(`${API}/config/produtos`);
+  const res = await fetchAutenticado(`${API}/config/produtos`);
   const lista = await res.json();
-
+ 
   produtosCadastrados = lista;
-
+ 
   let html = "";
-
+ 
   lista.forEach(p => {
     html += `
       <div class="produto-item" onclick='selecionarProduto(${JSON.stringify(p)})'>
@@ -1030,96 +1286,91 @@ async function carregarProdutos() {
       </div>
     `;
   });
-
+ 
   document.getElementById("listaProdutos").innerHTML = html;
 }
-
+ 
 function selecionarProduto(produto) {
   produtoSelecionado = produto;
   document.getElementById("editarNome").value = produto.nome;
   document.getElementById("editarPreco").value = produto.preco;
 }
-
+ 
 async function editarProduto() {
   if (!produtoSelecionado) {
     alert("Selecione um produto");
     return;
   }
-
+ 
   const nome = document.getElementById("editarNome").value;
   let preco = document.getElementById("editarPreco").value;
   preco = preco.replace(",", ".");
-
-  await fetch(`${API}/config/produto/${produtoSelecionado.id}`, {
+ 
+  await fetchAutenticado(`${API}/config/produto/${produtoSelecionado.id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: jsonHeaders(),
     body: JSON.stringify({ nome, preco })
   });
-
+ 
   alert("Produto editado!");
-
+ 
   produtoSelecionado = null;
   document.getElementById("editarNome").value = "";
   document.getElementById("editarPreco").value = "";
-
+ 
   carregarProdutos();
 }
-
+ 
 async function excluirProduto() {
   if (!produtoSelecionado) {
     alert("Selecione um produto");
     return;
   }
-
+ 
   if (!confirm("Excluir produto selecionado?")) return;
-
-  await fetch(`${API}/config/produto/${produtoSelecionado.id}`, {
+ 
+  await fetchAutenticado(`${API}/config/produto/${produtoSelecionado.id}`, {
     method: "DELETE"
   });
-
+ 
   alert("Produto excluído!");
-
+ 
   produtoSelecionado = null;
   document.getElementById("editarNome").value = "";
   document.getElementById("editarPreco").value = "";
-
+ 
   carregarProdutos();
 }
-
+ 
 async function salvarConfig() {
   const usarSobra = document.getElementById("usarSobra").checked;
   const usarMeia = document.getElementById("usarMeia").checked;
-
-  await fetch(`${API}/config`, {
+ 
+  await fetchAutenticado(`${API}/config`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: jsonHeaders(),
     body: JSON.stringify({ usarSobra, usarMeia })
   });
-
+ 
   alert("Configuração salva!");
 }
-
+ 
 async function carregarConfig() {
-  const res = await fetch(`${API}/config`);
+  const res = await fetchAutenticado(`${API}/config`);
   const cfg = await res.json();
-
+ 
   document.getElementById("usarSobra").checked = cfg.usarSobra;
   document.getElementById("usarMeia").checked = cfg.usarMeia;
 }
-
+ 
 window.onload = () => {
-  carregarProdutos();
-  carregarConfig();
-
-  const voltou = carregarLocal();
-
-  if (voltou) {
-    mostrar("orcamento");
+  if (token) {
+    iniciarSistemaLogado();
   } else {
-    mostrar("inicio");
+    mostrarTelaLogin();
   }
 };
 </script>
-
+ 
 </body>
 </html>
