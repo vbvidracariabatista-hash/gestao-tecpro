@@ -335,6 +335,9 @@
       <option value="natural_fosco">Natural Fosco</option>
       <option value="preto">Preto</option>
       <option value="branco">Branco</option>
+      <option value="bronze">Bronze</option>
+      <option value="dourado">Dourado F1</option>
+      <option value="dourado_reto">Dourado Reto</option>
     </select>
  
     <select id="trilho">
@@ -352,6 +355,7 @@
       <option value="lapidado">Espelho Lapidado</option>
       <option value="bisotado">Espelho Bisotado</option>
       <option value="redondo">Espelho Redondo</option>
+      <option value="redondo_bisotado">Espelho Redondo Bisotado</option>
       <option value="organico">Espelho Orgânico</option>
     </select>
  
@@ -371,17 +375,26 @@
         <option value="outros">Outros</option>
       </select>
  
-      <select id="produtoAvulsoNome">
+      <select id="produtoAvulsoNome" onchange="atualizarCamposAvulso()">
         <option value="">Selecione o produto</option>
       </select>
  
-      <select id="tipoQuantidadeAvulsa">
+      <select id="tipoQuantidadeAvulsa" onchange="atualizarCamposAvulso()">
         <option value="unitario">Quantidade normal</option>
         <option value="meia_barra">Meia barra</option>
         <option value="barra_inteira">Barra inteira</option>
+        <option value="medida_retangular">Medida retangular (m²)</option>
+        <option value="medida_redonda">Medida redonda (diâmetro)</option>
       </select>
  
       <input type="number" id="produtoAvulsoQtd" placeholder="Quantidade" value="1">
+      <div id="camposMedidaAvulsa" style="display:none;">
+        <input type="number" id="avulsoLargura" placeholder="Largura (mm)">
+        <input type="number" id="avulsoAltura" placeholder="Altura (mm)">
+      </div>
+      <div id="campoDiametroAvulso" style="display:none;">
+        <input type="number" id="avulsoDiametro" placeholder="Diâmetro (mm)">
+      </div>
  
       <button class="calc" onclick="adicionarAvulso()">Adicionar Item Avulso</button>
  
@@ -411,6 +424,7 @@
   <div id="produtos" class="card" style="display:none;">
     <h3>Produtos</h3>
  
+    <input id="codigoProduto" placeholder="Código do produto (opcional)">
     <input id="nomeProduto" placeholder="Nome do produto">
     <input id="precoProduto" placeholder="Preço">
  
@@ -424,6 +438,7 @@
     <hr>
  
     <h3>Produto selecionado</h3>
+    <input id="editarCodigo" placeholder="Código do produto">
     <input id="editarNome" placeholder="Nome do produto">
     <input id="editarPreco" placeholder="Preço">
  
@@ -445,7 +460,7 @@
     <input id="perfilLogo" type="file" accept="image/*">
     <img id="perfilLogoPreview" class="perfil-preview-logo" style="display:none;">
     <button class="calc azul" onclick="salvarPerfilEmpresa()">Salvar Dados da Empresa</button>
-
+ 
     <div class="config-bloco">
       <h4>Segurança da conta</h4>
       <label>Email atual de login:</label>
@@ -454,9 +469,9 @@
       <input id="senhaAtualEmail" placeholder="Senha atual para alterar email" type="password">
       <button class="calc azul" onclick="alterarEmailLogin()">Alterar email de login</button>
       <p class="campo-ajuda">O email de login é o email usado para entrar no sistema. O e-mail da empresa acima é o que aparece no PDF.</p>
-
+ 
       <hr>
-
+ 
       <input id="senhaAtual" placeholder="Senha atual" type="password">
       <input id="novaSenha" placeholder="Nova senha" type="password">
       <input id="confirmarNovaSenha" placeholder="Confirmar nova senha" type="password">
@@ -640,12 +655,12 @@ async function salvarPerfilEmpresa() {
   alert("Dados da empresa salvos!");
   await carregarPerfilEmpresa();
 }
-
+ 
 async function alterarSenha() {
   const senhaAtual = document.getElementById("senhaAtual").value;
   const novaSenha = document.getElementById("novaSenha").value;
   const confirmarSenha = document.getElementById("confirmarNovaSenha").value;
-
+ 
   const res = await fetchAutenticado(`${API}/auth/change-password`, {
     method: "POST",
     headers: jsonHeaders(),
@@ -653,17 +668,17 @@ async function alterarSenha() {
   });
   const data = await res.json();
   if (!res.ok || data.erro) return alert(data.erro || "Erro ao alterar senha");
-
+ 
   document.getElementById("senhaAtual").value = "";
   document.getElementById("novaSenha").value = "";
   document.getElementById("confirmarNovaSenha").value = "";
   alert("Senha alterada com sucesso!");
 }
-
+ 
 async function alterarEmailLogin() {
   const novoEmail = document.getElementById("novoEmailLogin").value;
   const senhaAtual = document.getElementById("senhaAtualEmail").value;
-
+ 
   const res = await fetchAutenticado(`${API}/auth/change-email`, {
     method: "POST",
     headers: jsonHeaders(),
@@ -671,18 +686,18 @@ async function alterarEmailLogin() {
   });
   const data = await res.json();
   if (!res.ok || data.erro) return alert(data.erro || "Erro ao alterar email");
-
+ 
   usuarioLogado.email = data.email;
   document.getElementById("emailLoginAtual").value = data.email;
   document.getElementById("novoEmailLogin").value = "";
   document.getElementById("senhaAtualEmail").value = "";
   alert("Email de login alterado com sucesso!");
 }
-
+ 
 async function recuperarSenha() {
   const email = document.getElementById("loginEmail").value || prompt("Digite seu email de login:");
   if (!email) return;
-
+ 
   const res = await fetch(`${API}/auth/forgot-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -762,6 +777,10 @@ function limparCamposItem() {
   document.getElementById("produtoAvulsoNome").innerHTML = `<option value="">Selecione o produto</option>`;
   document.getElementById("tipoQuantidadeAvulsa").value = "unitario";
   document.getElementById("produtoAvulsoQtd").value = "1";
+  if (document.getElementById("avulsoLargura")) document.getElementById("avulsoLargura").value = "";
+  if (document.getElementById("avulsoAltura")) document.getElementById("avulsoAltura").value = "";
+  if (document.getElementById("avulsoDiametro")) document.getElementById("avulsoDiametro").value = "";
+  atualizarCamposAvulso();
   produtosAvulsos = [];
   document.getElementById("listaAvulsos").innerHTML = "";
 }
@@ -785,13 +804,27 @@ function limparFormularioCompleto() {
   localStorage.removeItem("orcamentoAtual");
 }
  
-function categorizarProduto(nome) {
-  const n = String(nome || "").toLowerCase();
+function normalizarTextoJS(texto) {
+  return String(texto || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "");
+}
  
-  if (n.includes("cctp") || n.includes("pu ") || n.includes("veda") || n.includes("cantoneira")) return "aluminio";
-  if (n.includes("vidro") || n.includes("espelho") || n.includes("pivotante pe")) return "vidro";
+function produtoPorNome(nome) {
+  const alvo = normalizarTextoJS(nome);
+  return produtosCadastrados.find(p => normalizarTextoJS(p.nome) === alvo) || null;
+}
+ 
+function categorizarProduto(nome) {
+  const n = normalizarTextoJS(nome);
+ 
+  if (n.includes("cctp") || n.includes("pu8") || n.includes("pu10") || n.includes("veda") || n.includes("cantoneira")) return "aluminio";
+  if (n.includes("vidro") || n.includes("espelho") || n.includes("pivotantepe")) return "vidro";
   if (n.includes("silicone")) return "silicone";
-  if (n.includes("roldana") || n.includes("puxador") || n.includes("fechadura") || n.includes("batedor") || n.includes("bate-fecha") || n.includes("kit") || n.includes("bucha") || n.includes("parafuso")) return "acessorio";
+  if (n.includes("roldana") || n.includes("puxador") || n.includes("fechadura") || n.includes("batedor") || n.includes("batente") || n.includes("batefecha") || n.includes("kit") || n.includes("bucha") || n.includes("parafuso") || n.includes("dobradica")) return "acessorio";
  
   return "outros";
 }
@@ -804,11 +837,21 @@ function filtrarProdutosAvulsos() {
  
   produtosCadastrados.forEach(p => {
     if (!categoria || categorizarProduto(p.nome) === categoria) {
-      html += `<option value="${p.nome}">${p.nome} - R$ ${Number(p.preco).toFixed(2)}</option>`;
+      const cod = p.codigo ? `${p.codigo} – ` : "";
+      html += `<option value="${p.nome}">${cod}${p.nome} - R$ ${Number(p.preco).toFixed(2)}</option>`;
     }
   });
  
   select.innerHTML = html;
+}
+ 
+function atualizarCamposAvulso() {
+  const tipoQtd = document.getElementById("tipoQuantidadeAvulsa").value;
+  const boxMedida = document.getElementById("camposMedidaAvulsa");
+  const boxDiametro = document.getElementById("campoDiametroAvulso");
+ 
+  if (boxMedida) boxMedida.style.display = tipoQtd === "medida_retangular" ? "block" : "none";
+  if (boxDiametro) boxDiametro.style.display = tipoQtd === "medida_redonda" ? "block" : "none";
 }
  
 function adicionarAvulso() {
@@ -825,6 +868,11 @@ function adicionarAvulso() {
  
   let quantidade = quantidadeDigitada;
   let descricaoQtd = `${quantidadeDigitada}`;
+  let unidade = "un";
+ 
+  const larguraAvulsa = Number(document.getElementById("avulsoLargura")?.value || 0);
+  const alturaAvulsa = Number(document.getElementById("avulsoAltura")?.value || 0);
+  const diametroAvulso = Number(document.getElementById("avulsoDiametro")?.value || 0);
  
   if (tipoQtd === "meia_barra") {
     quantidade = 0.5 * quantidadeDigitada;
@@ -836,7 +884,28 @@ function adicionarAvulso() {
     descricaoQtd = `${quantidadeDigitada} barra inteira`;
   }
  
-  const produto = produtosCadastrados.find(p => p.nome === nome);
+  if (tipoQtd === "medida_retangular") {
+    if (!larguraAvulsa || !alturaAvulsa) {
+      alert("Informe largura e altura do item avulso");
+      return;
+    }
+    quantidade = ((larguraAvulsa * alturaAvulsa) / 1000000) * quantidadeDigitada;
+    unidade = "m²";
+    descricaoQtd = `${larguraAvulsa} x ${alturaAvulsa} mm | ${quantidadeDigitada} peça(s) | ${quantidade.toFixed(3)} m²`;
+  }
+ 
+  if (tipoQtd === "medida_redonda") {
+    if (!diametroAvulso) {
+      alert("Informe o diâmetro do item redondo");
+      return;
+    }
+    const raio = (diametroAvulso / 1000) / 2;
+    quantidade = (Math.PI * raio * raio) * quantidadeDigitada;
+    unidade = "m²";
+    descricaoQtd = `Diâmetro ${diametroAvulso} mm | ${quantidadeDigitada} peça(s) | ${quantidade.toFixed(3)} m²`;
+  }
+ 
+  const produto = produtoPorNome(nome);
   const preco = produto ? Number(produto.preco || 0) : 0;
   const custo = preco * quantidade;
  
@@ -847,8 +916,8 @@ function adicionarAvulso() {
     valor_venda: custo,
     materiais: {
       [nome]: {
-        quantidade,
-        unidade: "un",
+        quantidade: Number(quantidade.toFixed ? quantidade.toFixed(3) : quantidade),
+        unidade,
         preco,
         custo,
         calculo_manual: true
@@ -861,10 +930,10 @@ function adicionarAvulso() {
     tipoAvulso: true,
     formulario: {
       tipo: "avulso",
-      largura: "-",
-      altura: "-",
+      largura: tipoQtd === "medida_retangular" ? larguraAvulsa : (tipoQtd === "medida_redonda" ? diametroAvulso : "-"),
+      altura: tipoQtd === "medida_retangular" ? alturaAvulsa : "-",
       descricaoQtd,
-      avulsos: [{ nome, quantidade }]
+      avulsos: [{ nome, quantidade, largura: larguraAvulsa, altura: alturaAvulsa, diametro: diametroAvulso, tipoQtd }]
     },
     resultado: resultadoAvulso
   });
@@ -877,6 +946,10 @@ function adicionarAvulso() {
   document.getElementById("produtoAvulsoNome").innerHTML = `<option value="">Selecione o produto</option>`;
   document.getElementById("tipoQuantidadeAvulsa").value = "unitario";
   document.getElementById("produtoAvulsoQtd").value = "1";
+  document.getElementById("avulsoLargura").value = "";
+  document.getElementById("avulsoAltura").value = "";
+  document.getElementById("avulsoDiametro").value = "";
+  atualizarCamposAvulso();
 }
  
 function renderizarAvulsos() {
@@ -1327,6 +1400,7 @@ async function gerarPDFTempera() {
 }
  
 async function salvarProduto() {
+  const codigo = document.getElementById("codigoProduto").value;
   const nome = document.getElementById("nomeProduto").value;
   let preco = document.getElementById("precoProduto").value;
  
@@ -1340,9 +1414,10 @@ async function salvarProduto() {
   await fetchAutenticado(`${API}/config/produto`, {
     method: "POST",
     headers: jsonHeaders(),
-    body: JSON.stringify({ nome, preco })
+    body: JSON.stringify({ codigo, nome, preco })
   });
  
+  document.getElementById("codigoProduto").value = "";
   document.getElementById("nomeProduto").value = "";
   document.getElementById("precoProduto").value = "";
  
@@ -1360,8 +1435,8 @@ async function carregarProdutos() {
   lista.forEach(p => {
     html += `
       <div class="produto-item" onclick='selecionarProduto(${JSON.stringify(p)})'>
-        <b>${p.nome}</b><br>
-        R$ ${Number(p.preco).toFixed(2)}
+        <b>${p.codigo ? p.codigo + " – " : ""}${p.nome}</b><br>
+        R$ ${Number(p.preco).toFixed(2)}${Number(p.catalogo || 0) === 1 ? " <small>(catálogo)</small>" : ""}
       </div>
     `;
   });
@@ -1371,7 +1446,10 @@ async function carregarProdutos() {
  
 function selecionarProduto(produto) {
   produtoSelecionado = produto;
+  document.getElementById("editarCodigo").value = produto.codigo || "";
   document.getElementById("editarNome").value = produto.nome;
+  document.getElementById("editarNome").disabled = Number(produto.catalogo || 0) === 1;
+  document.getElementById("editarCodigo").disabled = Number(produto.catalogo || 0) === 1;
   document.getElementById("editarPreco").value = produto.preco;
 }
  
@@ -1381,6 +1459,7 @@ async function editarProduto() {
     return;
   }
  
+  const codigo = document.getElementById("editarCodigo").value;
   const nome = document.getElementById("editarNome").value;
   let preco = document.getElementById("editarPreco").value;
   preco = preco.replace(",", ".");
@@ -1388,13 +1467,16 @@ async function editarProduto() {
   await fetchAutenticado(`${API}/config/produto/${produtoSelecionado.id}`, {
     method: "PUT",
     headers: jsonHeaders(),
-    body: JSON.stringify({ nome, preco })
+    body: JSON.stringify({ codigo, nome, preco })
   });
  
   alert("Produto editado!");
  
   produtoSelecionado = null;
+  document.getElementById("editarCodigo").value = "";
+  document.getElementById("editarCodigo").disabled = false;
   document.getElementById("editarNome").value = "";
+  document.getElementById("editarNome").disabled = false;
   document.getElementById("editarPreco").value = "";
  
   carregarProdutos();
@@ -1403,6 +1485,11 @@ async function editarProduto() {
 async function excluirProduto() {
   if (!produtoSelecionado) {
     alert("Selecione um produto");
+    return;
+  }
+ 
+  if (Number(produtoSelecionado.catalogo || 0) === 1) {
+    alert("Produto do catálogo padrão não pode ser excluído. Você pode deixar o preço zerado ou alterar o preço.");
     return;
   }
  
@@ -1415,7 +1502,10 @@ async function excluirProduto() {
   alert("Produto excluído!");
  
   produtoSelecionado = null;
+  document.getElementById("editarCodigo").value = "";
+  document.getElementById("editarCodigo").disabled = false;
   document.getElementById("editarNome").value = "";
+  document.getElementById("editarNome").disabled = false;
   document.getElementById("editarPreco").value = "";
  
   carregarProdutos();

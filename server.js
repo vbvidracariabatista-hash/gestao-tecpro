@@ -116,9 +116,635 @@ CREATE TABLE IF NOT EXISTS sessoes (
 function tabelaTemColuna(tabela, coluna) {
   return db.prepare(`PRAGMA table_info(${tabela})`).all().some(c => c.name === coluna);
 }
-
+ 
 if (!tabelaTemColuna("usuarios", "email_empresa")) {
   db.prepare("ALTER TABLE usuarios ADD COLUMN email_empresa TEXT").run();
+}
+ 
+const CATALOGO_PADRAO = [
+  {
+    "codigo": "",
+    "nome": "Espelho Lapidado"
+  },
+  {
+    "codigo": "",
+    "nome": "Espelho Bisotado"
+  },
+  {
+    "codigo": "",
+    "nome": "Espelho Redondo"
+  },
+  {
+    "codigo": "",
+    "nome": "Espelho Redondo Bisotado"
+  },
+  {
+    "codigo": "",
+    "nome": "Espelho Orgânico"
+  },
+  {
+    "codigo": "",
+    "nome": "Vidro PE Incolor"
+  },
+  {
+    "codigo": "",
+    "nome": "Vidro PE Verde"
+  },
+  {
+    "codigo": "",
+    "nome": "Vidro PE Fumê"
+  },
+  {
+    "codigo": "",
+    "nome": "Vidro PE Bronze"
+  },
+  {
+    "codigo": "",
+    "nome": "Vidro Incolor 8mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Vidro Verde 8mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Vidro Fumê 8mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Vidro Bronze 8mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Vidro Incolor 10mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Vidro Verde 10mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Vidro Fumê 10mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Vidro Bronze 10mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Vidro Incolor 12mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Vidro Verde 12mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Vidro Fumê 12mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Vidro Bronze 12mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Porta Pivotante PE Incolor"
+  },
+  {
+    "codigo": "",
+    "nome": "Porta Pivotante PE Verde"
+  },
+  {
+    "codigo": "",
+    "nome": "Porta Pivotante PE Fumê"
+  },
+  {
+    "codigo": "",
+    "nome": "Porta Pivotante PE Bronze"
+  },
+  {
+    "codigo": "1125",
+    "nome": "Roldana simples"
+  },
+  {
+    "codigo": "1125-E",
+    "nome": "Roldana box"
+  },
+  {
+    "codigo": "Kit 01",
+    "nome": "Porta simples pivotante"
+  },
+  {
+    "codigo": "Kit 01 PM",
+    "nome": "Porta pivotante para mola"
+  },
+  {
+    "codigo": "Kit 02",
+    "nome": "Janela pivotante"
+  },
+  {
+    "codigo": "Kit 08",
+    "nome": "Porta dupla pivotante"
+  },
+  {
+    "codigo": "Kit 09",
+    "nome": "Porta de correr V/V linha"
+  },
+  {
+    "codigo": "Kit 10",
+    "nome": "Porta de correr V/A linha"
+  },
+  {
+    "codigo": "Kit 17",
+    "nome": "Porta pivotante c/ fechadura 3210"
+  },
+  {
+    "codigo": "",
+    "nome": "Puxador H tubular redondo"
+  },
+  {
+    "codigo": "",
+    "nome": "Torre pinça"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Natural Fosco 1000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Preto 1000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Bronze 1000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Dourado F1 1000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Dourado Reto 1000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Natural Fosco 1200mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Preto 1200mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Bronze 1200mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Dourado F1 1200mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Dourado Reto 1200mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Natural Fosco 1300mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Preto 1300mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Bronze 1300mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Dourado F1 1300mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Dourado Reto 1300mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Natural Fosco 1400mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Preto 1400mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Bronze 1400mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Dourado F1 1400mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Dourado Reto 1400mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Natural Fosco 1500mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Preto 1500mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Bronze 1500mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Dourado F1 1500mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Dourado Reto 1500mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Natural Fosco 2000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Preto 2000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Bronze 2000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Dourado F1 2000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Frontal Dourado Reto 2000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Natural Fosco 1000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Preto 1000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Bronze 1000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Dourado F1 1000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Dourado Reto 1000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Natural Fosco 1200mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Preto 1200mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Bronze 1200mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Dourado F1 1200mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Dourado Reto 1200mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Natural Fosco 1300mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Preto 1300mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Bronze 1300mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Dourado F1 1300mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Dourado Reto 1300mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Natural Fosco 1400mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Preto 1400mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Bronze 1400mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Dourado F1 1400mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Dourado Reto 1400mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Natural Fosco 1500mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Preto 1500mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Bronze 1500mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Dourado F1 1500mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Dourado Reto 1500mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Natural Fosco 2000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Preto 2000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Bronze 2000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Dourado F1 2000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "Kit Box Canto Dourado Reto 2000mm"
+  },
+  {
+    "codigo": "",
+    "nome": "CCTP Natural Fosco"
+  },
+  {
+    "codigo": "",
+    "nome": "CCTP Preto"
+  },
+  {
+    "codigo": "",
+    "nome": "CCTP Branco"
+  },
+  {
+    "codigo": "",
+    "nome": "CCTP Bronze"
+  },
+  {
+    "codigo": "",
+    "nome": "CCTP Dourado"
+  },
+  {
+    "codigo": "",
+    "nome": "CCTP Dourado Reto"
+  },
+  {
+    "codigo": "",
+    "nome": "Cantoneira 10mm Natural Fosco"
+  },
+  {
+    "codigo": "",
+    "nome": "Cantoneira 15mm Natural Fosco"
+  },
+  {
+    "codigo": "",
+    "nome": "Cantoneira 20mm Natural Fosco"
+  },
+  {
+    "codigo": "",
+    "nome": "Cantoneira 25mm Natural Fosco"
+  },
+  {
+    "codigo": "",
+    "nome": "Cantoneira 10mm Branco"
+  },
+  {
+    "codigo": "",
+    "nome": "Cantoneira 15mm Branco"
+  },
+  {
+    "codigo": "",
+    "nome": "Cantoneira 20mm Branco"
+  },
+  {
+    "codigo": "",
+    "nome": "Cantoneira 25mm Branco"
+  },
+  {
+    "codigo": "",
+    "nome": "Cantoneira 10mm Preto"
+  },
+  {
+    "codigo": "",
+    "nome": "Cantoneira 15mm Preto"
+  },
+  {
+    "codigo": "",
+    "nome": "Cantoneira 20mm Preto"
+  },
+  {
+    "codigo": "",
+    "nome": "Cantoneira 25mm Preto"
+  },
+  {
+    "codigo": "",
+    "nome": "Cantoneira 10mm Bronze"
+  },
+  {
+    "codigo": "",
+    "nome": "Cantoneira 15mm Bronze"
+  },
+  {
+    "codigo": "",
+    "nome": "Cantoneira 20mm Bronze"
+  },
+  {
+    "codigo": "",
+    "nome": "Cantoneira 25mm Bronze"
+  },
+  {
+    "codigo": "",
+    "nome": "PU 8mm Branco"
+  },
+  {
+    "codigo": "",
+    "nome": "PU 8mm Natural Fosco"
+  },
+  {
+    "codigo": "",
+    "nome": "PU 8mm Dourado 2900"
+  },
+  {
+    "codigo": "",
+    "nome": "PU 8mm Preto"
+  },
+  {
+    "codigo": "",
+    "nome": "PU 8mm Bronze"
+  },
+  {
+    "codigo": "",
+    "nome": "Veda Poeira 8mm Bronze"
+  },
+  {
+    "codigo": "",
+    "nome": "Veda Poeira 8mm Branco"
+  },
+  {
+    "codigo": "",
+    "nome": "Veda Poeira 8mm Natural Fosco"
+  },
+  {
+    "codigo": "",
+    "nome": "Veda Poeira 8mm Dourado 2900"
+  },
+  {
+    "codigo": "",
+    "nome": "Veda Poeira 8mm Preto"
+  },
+  {
+    "codigo": "",
+    "nome": "Veda Press 8mm Bronze"
+  },
+  {
+    "codigo": "",
+    "nome": "Veda Press 8mm Branco"
+  },
+  {
+    "codigo": "",
+    "nome": "Veda Press 8mm Natural Fosco"
+  },
+  {
+    "codigo": "",
+    "nome": "Veda Press 8mm Dourado 2900"
+  },
+  {
+    "codigo": "",
+    "nome": "Veda Press 8mm Preto"
+  },
+  {
+    "codigo": "",
+    "nome": "Batente Inferior"
+  },
+  {
+    "codigo": "",
+    "nome": "Batente Superior Canoinha"
+  },
+  {
+    "codigo": "",
+    "nome": "Batente Superior Bipartido"
+  },
+  {
+    "codigo": "",
+    "nome": "Silicone Incolor"
+  },
+  {
+    "codigo": "",
+    "nome": "Silicone Preto"
+  },
+  {
+    "codigo": "",
+    "nome": "Silicone Branco"
+  },
+  {
+    "codigo": "",
+    "nome": "Silicone Bronze"
+  },
+  {
+    "codigo": "",
+    "nome": "Silicone Cinza"
+  },
+  {
+    "codigo": "",
+    "nome": "PU 10mm Branco"
+  },
+  {
+    "codigo": "",
+    "nome": "PU 10mm Bronze"
+  },
+  {
+    "codigo": "",
+    "nome": "PU 10mm Preto"
+  },
+  {
+    "codigo": "",
+    "nome": "PU 10mm Dourado"
+  },
+  {
+    "codigo": "",
+    "nome": "PU 10mm Natural Fosco"
+  },
+  {
+    "codigo": "",
+    "nome": "Parafuso"
+  },
+  {
+    "codigo": "",
+    "nome": "Bucha"
+  },
+  {
+    "codigo": "",
+    "nome": "Batedor central"
+  },
+  {
+    "codigo": "",
+    "nome": "Batedor inferior"
+  },
+  {
+    "codigo": "",
+    "nome": "Fechadura 3530 V/V"
+  },
+  {
+    "codigo": "",
+    "nome": "Fechadura 3530 V/A"
+  },
+  {
+    "codigo": "1570",
+    "nome": "Bate fecha V/V"
+  },
+  {
+    "codigo": "1571",
+    "nome": "Bate fecha V/A"
+  }
+];
+ 
+if (!tabelaTemColuna("produtos", "codigo")) {
+  db.prepare("ALTER TABLE produtos ADD COLUMN codigo TEXT").run();
+}
+if (!tabelaTemColuna("produtos", "catalogo")) {
+  db.prepare("ALTER TABLE produtos ADD COLUMN catalogo INTEGER DEFAULT 0").run();
 }
  
 function hashSenha(senha, salt = crypto.randomBytes(16).toString("hex")) {
@@ -190,12 +816,14 @@ function migrarTabelaProdutos() {
       CREATE TABLE produtos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         usuario_id INTEGER,
+        codigo TEXT,
         nome TEXT,
         preco REAL,
+        catalogo INTEGER DEFAULT 0,
         UNIQUE(usuario_id, nome)
       );
-      INSERT INTO produtos (id, usuario_id, nome, preco)
-      SELECT id, 1, nome, preco FROM produtos_antiga;
+      INSERT INTO produtos (id, usuario_id, codigo, nome, preco, catalogo)
+      SELECT id, 1, '', nome, preco, 0 FROM produtos_antiga;
       DROP TABLE produtos_antiga;
     `);
   }
@@ -226,6 +854,52 @@ function garantirColunaUsuario(tabela) {
   }
 }
  
+function normalizarChaveProduto(texto) {
+  return normalizarTexto(texto).replace(/[^a-z0-9]+/g, "");
+}
+ 
+function produtoExistentePorNome(usuarioId, nome) {
+  const chave = normalizarChaveProduto(nome);
+  const produtos = db.prepare("SELECT * FROM produtos WHERE usuario_id=?").all(usuarioId);
+  return produtos.find(p => normalizarChaveProduto(p.nome) === chave) || null;
+}
+ 
+function salvarProdutoUsuario(usuarioId, { codigo = "", nome, preco = 0, catalogo = 0 }) {
+  if (!nome) return;
+  const existente = produtoExistentePorNome(usuarioId, nome);
+  if (existente) {
+    db.prepare(`
+      UPDATE produtos
+      SET codigo=?, nome=?, preco=?, catalogo=CASE WHEN ?=1 THEN 1 ELSE catalogo END
+      WHERE id=? AND usuario_id=?
+    `).run(codigo || existente.codigo || "", nome, Number(preco || existente.preco || 0), Number(catalogo || 0), existente.id, usuarioId);
+    return existente.id;
+  }
+  const result = db.prepare(`
+    INSERT INTO produtos (usuario_id, codigo, nome, preco, catalogo)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(usuarioId, codigo || "", nome, Number(preco || 0), Number(catalogo || 0));
+  return result.lastInsertRowid;
+}
+ 
+function garantirCatalogoUsuario(usuarioId) {
+  if (!usuarioId) return;
+  CATALOGO_PADRAO.forEach(item => {
+    const existente = produtoExistentePorNome(usuarioId, item.nome);
+    if (existente) {
+      db.prepare("UPDATE produtos SET codigo=COALESCE(NULLIF(codigo,''), ?), catalogo=1 WHERE id=? AND usuario_id=?")
+        .run(item.codigo || "", existente.id, usuarioId);
+    } else {
+      salvarProdutoUsuario(usuarioId, { codigo: item.codigo || "", nome: item.nome, preco: 0, catalogo: 1 });
+    }
+  });
+}
+ 
+function garantirCatalogoTodosUsuarios() {
+  db.prepare("SELECT id FROM usuarios").all().forEach(u => garantirCatalogoUsuario(u.id));
+}
+ 
+ 
 // Usuário inicial para preservar seus dados atuais.
 // Depois você pode criar outros usuários pela tela de cadastro.
 if (!db.prepare("SELECT id FROM usuarios WHERE email=?").get("vb.vidracariabatista@gmail.com")) {
@@ -254,6 +928,7 @@ migrarTabelaConfig();
 garantirColunaUsuario("estoque");
 garantirColunaUsuario("tabela_precos");
 garantirColunaUsuario("orcamentos");
+garantirCatalogoTodosUsuarios();
  
 function carregarUsuarioPorToken(token) {
   if (!token) return null;
@@ -304,6 +979,7 @@ app.post("/auth/register", (req, res) => {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
   `).run(nomeResponsavel || "", nomeEmpresa, telefone || "", emailLimpo, senhaNova.hash, senhaNova.salt, criado, testeAte);
  
+  garantirCatalogoUsuario(result.lastInsertRowid);
   const token = criarToken(result.lastInsertRowid);
   res.json({ ok: true, token, dias_restantes: 7 });
 });
@@ -349,69 +1025,69 @@ app.post("/auth/logout", requireAuth, (req, res) => {
   if (token) db.prepare("DELETE FROM sessoes WHERE token=?").run(token);
   res.json({ ok: true });
 });
-
+ 
 app.post("/auth/change-password", requireAuth, (req, res) => {
   const senhaAtual = String(req.body.senhaAtual || "");
   const novaSenha = String(req.body.novaSenha || "");
   const confirmarSenha = String(req.body.confirmarSenha || "");
-
+ 
   if (!senhaAtual || !novaSenha || !confirmarSenha) {
     return res.status(400).json({ erro: "Preencha senha atual, nova senha e confirmação" });
   }
-
+ 
   if (!senhaConfere(senhaAtual, req.usuario.senha_salt, req.usuario.senha_hash)) {
     return res.status(400).json({ erro: "Senha atual incorreta" });
   }
-
+ 
   if (novaSenha.length < 6) {
     return res.status(400).json({ erro: "A nova senha precisa ter pelo menos 6 caracteres" });
   }
-
+ 
   if (novaSenha !== confirmarSenha) {
     return res.status(400).json({ erro: "A confirmação da nova senha não confere" });
   }
-
+ 
   const senhaNova = hashSenha(novaSenha);
   db.prepare("UPDATE usuarios SET senha_hash=?, senha_salt=? WHERE id=?")
     .run(senhaNova.hash, senhaNova.salt, req.usuario.id);
-
+ 
   // Derruba outras sessões antigas e mantém a sessão atual válida.
   const auth = req.headers.authorization || "";
   const tokenAtual = auth.startsWith("Bearer ") ? auth.slice(7) : req.body.token;
   db.prepare("DELETE FROM sessoes WHERE usuario_id=? AND token<>?").run(req.usuario.id, tokenAtual || "");
-
+ 
   res.json({ ok: true });
 });
-
+ 
 app.post("/auth/change-email", requireAuth, (req, res) => {
   const novoEmail = String(req.body.novoEmail || "").trim().toLowerCase();
   const senhaAtual = String(req.body.senhaAtual || "");
-
+ 
   if (!novoEmail || !senhaAtual) {
     return res.status(400).json({ erro: "Informe o novo email e sua senha atual" });
   }
-
+ 
   if (!novoEmail.includes("@") || !novoEmail.includes(".")) {
     return res.status(400).json({ erro: "Informe um email válido" });
   }
-
+ 
   if (!senhaConfere(senhaAtual, req.usuario.senha_salt, req.usuario.senha_hash)) {
     return res.status(400).json({ erro: "Senha atual incorreta" });
   }
-
+ 
   const existente = db.prepare("SELECT id FROM usuarios WHERE email=? AND id<>?").get(novoEmail, req.usuario.id);
   if (existente) {
     return res.status(400).json({ erro: "Este email já está sendo usado por outra conta" });
   }
-
+ 
   db.prepare("UPDATE usuarios SET email=? WHERE id=?").run(novoEmail, req.usuario.id);
   res.json({ ok: true, email: novoEmail });
 });
-
+ 
 app.post("/auth/forgot-password", (req, res) => {
   const email = String(req.body.email || "").trim().toLowerCase();
   const usuario = db.prepare("SELECT id FROM usuarios WHERE email=?").get(email);
-
+ 
   // Sem SMTP configurado ainda. A resposta é genérica para não expor contas cadastradas.
   res.json({
     ok: true,
@@ -454,34 +1130,40 @@ app.use(requireAuth);
 // ============================
  
 app.post("/config/produto", (req, res) => {
-  let { nome, preco } = req.body;
-  preco = String(preco).replace(",", ".");
+  let { codigo, nome, preco } = req.body;
+  preco = String(preco || "0").replace(",", ".");
   const usuarioId = usuarioAtualId();
  
-  db.prepare(`
-    INSERT INTO produtos (usuario_id, nome, preco)
-    VALUES (?, ?, ?)
-    ON CONFLICT(usuario_id, nome)
-    DO UPDATE SET preco=excluded.preco
-  `).run(usuarioId, nome, Number(preco));
+  if (!nome) {
+    return res.status(400).json({ erro: "Informe o nome do produto" });
+  }
  
+  salvarProdutoUsuario(usuarioId, { codigo: codigo || "", nome, preco: Number(preco || 0), catalogo: 0 });
   res.json({ ok: true });
 });
  
 app.get("/config/produtos", (req, res) => {
-  res.json(db.prepare("SELECT * FROM produtos WHERE usuario_id=? ORDER BY nome").all(usuarioAtualId()));
+  garantirCatalogoUsuario(usuarioAtualId());
+  res.json(db.prepare("SELECT * FROM produtos WHERE usuario_id=? ORDER BY catalogo DESC, nome").all(usuarioAtualId()));
 });
  
 app.put("/config/produto/:id", (req, res) => {
   const id = req.params.id;
-  let { nome, preco } = req.body;
-  preco = String(preco).replace(",", ".");
+  let { codigo, nome, preco } = req.body;
+  preco = String(preco || "0").replace(",", ".");
+  const usuarioId = usuarioAtualId();
+  const atual = db.prepare("SELECT * FROM produtos WHERE id=? AND usuario_id=?").get(id, usuarioId);
+ 
+  if (!atual) return res.status(404).json({ erro: "Produto não encontrado" });
+ 
+  const nomeFinal = atual.catalogo ? atual.nome : (nome || atual.nome);
+  const codigoFinal = atual.catalogo ? atual.codigo : (codigo || "");
  
   db.prepare(`
     UPDATE produtos
-    SET nome=?, preco=?
+    SET codigo=?, nome=?, preco=?
     WHERE id=? AND usuario_id=?
-  `).run(nome, Number(preco), id, usuarioAtualId());
+  `).run(codigoFinal, nomeFinal, Number(preco || 0), id, usuarioId);
  
   res.json({ ok: true });
 });
@@ -608,15 +1290,43 @@ function normalizarTexto(texto) {
     .replace(/[\u0300-\u036f]/g, "");
 }
  
-function getPreco(nome) {
-  const nomeNormalizado = normalizarTexto(nome);
+function normalizarBusca(texto) {
+  return normalizarTexto(texto).replace(/[^a-z0-9]+/g, "");
+}
+ 
+const ALIASES_PRECO = {
+  "roldana": "1125 – Roldana simples",
+  "roldanasimples": "1125 – Roldana simples",
+  "roldanabox": "1125-E – Roldana box",
+  "kitpivotante": "Kit 01 – Porta simples pivotante",
+  "puxador": "Puxador H tubular redondo",
+  "batefechavv": "1570 – Bate fecha V/V",
+  "batefechava": "1571 – Bate fecha V/A",
+  "fechadura3530vv": "Fechadura 3530 V/V",
+  "fechadura3530va": "Fechadura 3530 V/A"
+};
+ 
+function buscarProdutoPorNome(nome) {
   const usuarioId = usuarioAtualId() || 1;
-  const produtos = db.prepare("SELECT nome, preco FROM produtos WHERE usuario_id=?").all(usuarioId);
+  const alvo = normalizarBusca(nome);
+  const produtos = db.prepare("SELECT codigo, nome, preco FROM produtos WHERE usuario_id=?").all(usuarioId);
  
-  const encontrado = produtos.find(p =>
-    normalizarTexto(p.nome) === nomeNormalizado
-  );
+  let encontrado = produtos.find(p => normalizarBusca(p.nome) === alvo);
+  if (encontrado) return encontrado;
  
+  const alias = ALIASES_PRECO[alvo];
+  if (alias) {
+    const aliasNorm = normalizarBusca(alias);
+    encontrado = produtos.find(p => normalizarBusca(p.nome) === aliasNorm || normalizarBusca(`${p.codigo || ""} ${p.nome}`) === aliasNorm);
+    if (encontrado) return encontrado;
+  }
+ 
+  encontrado = produtos.find(p => normalizarBusca(p.nome).includes(alvo) || alvo.includes(normalizarBusca(p.nome)));
+  return encontrado || null;
+}
+ 
+function getPreco(nome) {
+  const encontrado = buscarProdutoPorNome(nome);
   return encontrado ? Number(encontrado.preco) : 0;
 }
  
@@ -651,6 +1361,21 @@ function labelCor(cor) {
   return "Incolor";
 }
  
+function labelAluminio(corAluminio) {
+  if (corAluminio === "preto") return "Preto";
+  if (corAluminio === "branco") return "Branco";
+  if (corAluminio === "bronze") return "Bronze";
+  if (corAluminio === "dourado") return "Dourado";
+  if (corAluminio === "dourado_reto") return "Dourado Reto";
+  return "Natural Fosco";
+}
+ 
+function nomePerfilPorCor(base, mm, corAluminio) {
+  const cor = labelAluminio(corAluminio);
+  if (cor === "Dourado") return `${base} ${mm}mm Dourado 2900`;
+  return `${base} ${mm}mm ${cor}`;
+}
+ 
 function nomeVidro({ categoria, cor, espessura = 8 }) {
   const corNome = labelCor(cor);
  
@@ -666,30 +1391,29 @@ function nomePivotantePE(cor) {
 }
  
 function nomeCCTP(corAluminio) {
-  if (corAluminio === "preto") return "Cctp Preto";
-  if (corAluminio === "branco") return "Cctp Branco";
-  return "Cctp Natural Fosco";
+  return `CCTP ${labelAluminio(corAluminio)}`;
 }
  
 function nomeSiliconeAcabamento(corAluminio) {
   if (corAluminio === "preto") return "Silicone Preto";
   if (corAluminio === "branco") return "Silicone Branco";
+  if (corAluminio === "bronze") return "Silicone Bronze";
   return "Silicone Incolor";
 }
  
-function nomeKitBox({ largura, corAluminio = "natural_fosco" }) {
+function nomeKitBox({ largura, corAluminio = "natural_fosco", tipoBox = "box" }) {
   const larguraNum = Number(largura) || 0;
-  const tamanho = Math.ceil(larguraNum / 100) * 100;
+  const medidas = [1000, 1200, 1300, 1400, 1500, 2000];
+  const tamanho = medidas.find(m => larguraNum <= m) || Math.ceil(larguraNum / 100) * 100;
+  const modelo = tipoBox === "box_canto" ? "Canto" : "Frontal";
  
-  if (corAluminio === "preto") {
-    return `Kit Box F1 Preto ${tamanho}`;
-  }
+  let cor = "Natural Fosco";
+  if (corAluminio === "preto") cor = "Preto";
+  if (corAluminio === "bronze") cor = "Bronze";
+  if (corAluminio === "dourado") cor = "Dourado F1";
+  if (corAluminio === "dourado_reto") cor = "Dourado Reto";
  
-  if (corAluminio === "branco") {
-    return `Kit Box F1 Branco ${tamanho}`;
-  }
- 
-  return `Kit Box F1 Fosco ${tamanho}`;
+  return `Kit Box ${modelo} ${cor} ${tamanho}mm`;
 }
  
 // ============================
@@ -938,20 +1662,20 @@ function montarMateriaisCCTP({ tipo, largura, altura, corAluminio = "natural_fos
  
   if (tipo === "porta4" || tipo === "porta4_puxador" || tipo === "porta4_sem_puxador" || tipo === "janela4") {
     return {
-      "PU 8mm": {
+      [nomePerfilPorCor("PU", 8, corAluminio)]: {
         quantidade: 2,
-        ...calcularMaterial("PU 8mm", altura * 2),
-        preco: getPreco("PU 8mm")
+        ...calcularMaterial(nomePerfilPorCor("PU", 8, corAluminio), altura * 2),
+        preco: getPreco(nomePerfilPorCor("PU", 8, corAluminio))
       },
-      "Veda Poeira": {
+      [nomePerfilPorCor("Veda Poeira", 8, corAluminio)]: {
         quantidade: 2,
-        ...calcularMaterial("Veda Poeira", altura * 2),
-        preco: getPreco("Veda Poeira")
+        ...calcularMaterial(nomePerfilPorCor("Veda Poeira", 8, corAluminio), altura * 2),
+        preco: getPreco(nomePerfilPorCor("Veda Poeira", 8, corAluminio))
       },
-      "Veda Press": {
+      [nomePerfilPorCor("Veda Press", 8, corAluminio)]: {
         quantidade: 1,
-        ...calcularMaterial("Veda Press", altura),
-        preco: getPreco("Veda Press")
+        ...calcularMaterial(nomePerfilPorCor("Veda Press", 8, corAluminio), altura),
+        preco: getPreco(nomePerfilPorCor("Veda Press", 8, corAluminio))
       },
       ...base,
       "Puxador": {
@@ -979,20 +1703,20 @@ function montarMateriaisCCTP({ tipo, largura, altura, corAluminio = "natural_fos
  
   if (tipo === "porta150" || tipo === "porta2" || tipo === "porta_esconder" || tipo === "janela2") {
     return {
-      "PU 8mm": {
+      [nomePerfilPorCor("PU", 8, corAluminio)]: {
         quantidade: 1,
-        ...calcularMaterial("PU 8mm", altura),
-        preco: getPreco("PU 8mm")
+        ...calcularMaterial(nomePerfilPorCor("PU", 8, corAluminio), altura),
+        preco: getPreco(nomePerfilPorCor("PU", 8, corAluminio))
       },
-      "PU 10mm": {
+      [nomePerfilPorCor("PU", 10, corAluminio)]: {
         quantidade: 1,
-        ...calcularMaterial("PU 10mm", altura),
-        preco: getPreco("PU 10mm")
+        ...calcularMaterial(nomePerfilPorCor("PU", 10, corAluminio), altura),
+        preco: getPreco(nomePerfilPorCor("PU", 10, corAluminio))
       },
-      "Veda Poeira": {
+      [nomePerfilPorCor("Veda Poeira", 8, corAluminio)]: {
         quantidade: 1,
-        ...calcularMaterial("Veda Poeira", altura),
-        preco: getPreco("Veda Poeira")
+        ...calcularMaterial(nomePerfilPorCor("Veda Poeira", 8, corAluminio), altura),
+        preco: getPreco(nomePerfilPorCor("Veda Poeira", 8, corAluminio))
       },
       ...base,
       "Puxador": {
@@ -1167,34 +1891,50 @@ app.get("/orcamento", (req, res) => {
  
   if (tipo === "espelho") {
     const modelo = req.query.tipoEspelho || req.query.modelo || "lapidado";
-    const area = (largura / 1000) * (altura / 1000);
+    const modeloNorm = normalizarBusca(modelo);
  
-    let chave = "espelho_lapidado";
+    let nomeProdutoEspelho = "Espelho Lapidado";
+    if (modeloNorm === "bisotado") nomeProdutoEspelho = "Espelho Bisotado";
+    if (modeloNorm === "redondo") nomeProdutoEspelho = "Espelho Redondo";
+    if (modeloNorm === "redondobisotado") nomeProdutoEspelho = "Espelho Redondo Bisotado";
+    if (modeloNorm === "organico") nomeProdutoEspelho = "Espelho Orgânico";
  
-    if (modelo === "bisotado") chave = "espelho_bisotado";
-    if (modelo === "redondo") chave = "espelho_redondo";
-    if (modelo === "organico") chave = "espelho_organico";
+    let area = (largura / 1000) * (altura / 1000);
+    if (modeloNorm === "redondo" || modeloNorm === "redondobisotado") {
+      const diametro = largura || altura;
+      const raio = (diametro / 1000) / 2;
+      area = Math.PI * raio * raio;
+    }
  
-    const precoM2 = getTabela(chave) || getPreco(chave);
+    const precoM2 = getPreco(nomeProdutoEspelho);
     const custo_total = area * precoM2;
     const lucro = custo_total * (margem / 100);
     const valor_venda = custo_total + lucro;
  
     return res.json({
-      tipo: `Espelho ${modelo}`,
-      area_m2: Number(area.toFixed(2)),
+      tipo: nomeProdutoEspelho,
+      area_m2: Number(area.toFixed(3)),
       preco_m2: precoM2,
       custo_total,
       lucro,
       valor_venda,
-      prazo: "A combinar"
+      prazo: "A combinar",
+      materiais: {
+        [nomeProdutoEspelho]: {
+          quantidade: Number(area.toFixed(3)),
+          unidade: "m²",
+          preco: precoM2,
+          custo: custo_total,
+          calculo_manual: true
+        }
+      }
     });
   }
  
   if (tipo === "box" || tipo === "box_canto") {
     const area = (largura / 1000) * (altura / 1000);
     const precoM2 = getTabela(`box_${cor}`) || getTabela("box") || getPreco(`Vidro ${labelCor(cor)} ${espessura}mm`);
-    const kitBox = nomeKitBox({ largura, corAluminio });
+    const kitBox = nomeKitBox({ largura, corAluminio, tipoBox: tipo });
  
     let materiais = {
       [`Vidro ${labelCor(cor)} ${espessura}mm`]: {
