@@ -239,6 +239,137 @@
     .config-bloco h4 { margin: 0 0 10px 0; color: #003366; }
     .campo-ajuda { color: #555; font-size: 12px; margin: 4px 0 10px; }
  
+
+    .produtos-toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 12px 0;
+      background: #f4f8ff;
+      padding: 10px;
+      border-radius: 8px;
+      border-left: 5px solid #003366;
+    }
+
+    .produtos-toolbar input {
+      flex: 1;
+      min-width: 220px;
+      margin: 0;
+    }
+
+    .atalhos-letras {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin: 8px 0 14px;
+    }
+
+    .atalhos-letras button {
+      border: none;
+      background: #003366;
+      color: white;
+      border-radius: 5px;
+      padding: 7px 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .atalhos-letras button:hover,
+    .atalhos-letras button.ativo {
+      background: #b30000;
+    }
+
+    .produto-linha {
+      background: #f8f8f8;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 8px;
+      border-left: 5px solid #003366;
+    }
+
+    .produto-linha-topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .produto-linha-nome {
+      flex: 1;
+      font-weight: bold;
+    }
+
+    .produto-linha-preco {
+      white-space: nowrap;
+      font-weight: bold;
+      color: #006600;
+    }
+
+    .produto-editor-inline {
+      display: none;
+      margin-top: 10px;
+      background: #eef5ff;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .produto-editor-inline.ativo {
+      display: block;
+    }
+
+    .produto-editor-grid {
+      display: grid;
+      grid-template-columns: 140px 1fr 140px 120px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .produto-editor-grid input {
+      margin: 0;
+    }
+
+    .produto-editor-grid button {
+      margin: 0;
+      padding: 12px;
+      border: none;
+      background: #b30000;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .produto-editor-grid button.azul {
+      background: #003366;
+    }
+
+    .produto-editor-grid button.cinza {
+      background: #444;
+    }
+
+    .produto-contador {
+      color: #444;
+      font-size: 13px;
+      margin: 6px 0;
+    }
+
+    @media (max-width: 900px) {
+      .produto-editor-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .produto-linha-topo {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .produto-linha-preco {
+        white-space: normal;
+      }
+    }
+
   </style>
 </head>
  
@@ -433,11 +564,21 @@
     <hr>
  
     <h3>Produtos cadastrados</h3>
+
+    <div class="produtos-toolbar">
+      <input id="buscaProduto" placeholder="Buscar produto por nome ou código" oninput="renderizarProdutosFiltrados()">
+      <button class="calc azul" style="width:auto;margin:0;" onclick="limparFiltroProdutos()">Limpar busca</button>
+      <button class="calc cinza" style="width:auto;margin:0;" onclick="mostrarProdutosSemPreco()">Sem preço</button>
+    </div>
+
+    <div id="atalhosLetras" class="atalhos-letras"></div>
+    <div id="contadorProdutos" class="produto-contador"></div>
     <div id="listaProdutos"></div>
  
     <hr>
  
     <h3>Produto selecionado</h3>
+    <p class="campo-ajuda">Agora você pode editar preço direto na própria linha do produto. Esta área fica como opção extra para produtos manuais.</p>
     <input id="editarCodigo" placeholder="Código do produto">
     <input id="editarNome" placeholder="Nome do produto">
     <input id="editarPreco" placeholder="Preço">
@@ -1421,36 +1562,176 @@ async function salvarProduto() {
   document.getElementById("nomeProduto").value = "";
   document.getElementById("precoProduto").value = "";
  
-  carregarProdutos();
+  await carregarProdutos();
 }
- 
+
+let filtroLetraProduto = "";
+let mostrarSomenteSemPreco = false;
+
+function escapeHtml(valor) {
+  return String(valor ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function normalizarBuscaProduto(texto) {
+  return String(texto || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 async function carregarProdutos() {
   const res = await fetchAutenticado(`${API}/config/produtos`);
   const lista = await res.json();
  
   produtosCadastrados = lista;
- 
+  renderizarAtalhosLetras();
+  renderizarProdutosFiltrados();
+}
+
+function renderizarAtalhosLetras() {
+  const letras = [...new Set(produtosCadastrados
+    .map(p => normalizarBuscaProduto(p.nome || "").charAt(0).toUpperCase())
+    .filter(l => /^[A-Z0-9]$/.test(l)))].sort();
+
+  let html = `<button class="${!filtroLetraProduto && !mostrarSomenteSemPreco ? 'ativo' : ''}" onclick="filtrarProdutoPorLetra('')">Todos</button>`;
+  letras.forEach(letra => {
+    html += `<button class="${filtroLetraProduto === letra ? 'ativo' : ''}" onclick="filtrarProdutoPorLetra('${letra}')">${letra}</button>`;
+  });
+
+  document.getElementById("atalhosLetras").innerHTML = html;
+}
+
+function filtrarProdutoPorLetra(letra) {
+  filtroLetraProduto = letra;
+  mostrarSomenteSemPreco = false;
+  renderizarAtalhosLetras();
+  renderizarProdutosFiltrados();
+}
+
+function limparFiltroProdutos() {
+  filtroLetraProduto = "";
+  mostrarSomenteSemPreco = false;
+  document.getElementById("buscaProduto").value = "";
+  renderizarAtalhosLetras();
+  renderizarProdutosFiltrados();
+}
+
+function mostrarProdutosSemPreco() {
+  filtroLetraProduto = "";
+  mostrarSomenteSemPreco = !mostrarSomenteSemPreco;
+  renderizarAtalhosLetras();
+  renderizarProdutosFiltrados();
+}
+
+function obterProdutosFiltrados() {
+  const busca = normalizarBuscaProduto(document.getElementById("buscaProduto")?.value || "");
+
+  return produtosCadastrados.filter(p => {
+    const nome = normalizarBuscaProduto(p.nome || "");
+    const codigo = normalizarBuscaProduto(p.codigo || "");
+
+    if (filtroLetraProduto && nome.charAt(0).toUpperCase() !== filtroLetraProduto) return false;
+    if (mostrarSomenteSemPreco && Number(p.preco || 0) > 0) return false;
+    if (busca && !nome.includes(busca) && !codigo.includes(busca)) return false;
+
+    return true;
+  });
+}
+
+function renderizarProdutosFiltrados() {
+  const lista = obterProdutosFiltrados();
   let html = "";
- 
+
   lista.forEach(p => {
+    const catalogo = Number(p.catalogo || 0) === 1;
+    const precoFormatado = Number(p.preco || 0).toFixed(2);
+    const codigoNome = `${p.codigo ? escapeHtml(p.codigo) + " – " : ""}${escapeHtml(p.nome)}`;
+
     html += `
-      <div class="produto-item" onclick='selecionarProduto(${JSON.stringify(p)})'>
-        <b>${p.codigo ? p.codigo + " – " : ""}${p.nome}</b><br>
-        R$ ${Number(p.preco).toFixed(2)}${Number(p.catalogo || 0) === 1 ? " <small>(catálogo)</small>" : ""}
+      <div class="produto-linha" id="produto-linha-${p.id}">
+        <div class="produto-linha-topo" onclick="abrirEdicaoProduto(${p.id})">
+          <div class="produto-linha-nome">
+            ${codigoNome}
+            ${catalogo ? " <small>(catálogo)</small>" : ""}
+          </div>
+          <div class="produto-linha-preco">R$ ${precoFormatado}</div>
+        </div>
+
+        <div class="produto-editor-inline" id="produto-editor-${p.id}">
+          <div class="produto-editor-grid">
+            <input id="inlineCodigo-${p.id}" value="${escapeHtml(p.codigo || "")}" placeholder="Código" ${catalogo ? "disabled" : ""}>
+            <input id="inlineNome-${p.id}" value="${escapeHtml(p.nome || "")}" placeholder="Nome do produto" ${catalogo ? "disabled" : ""}>
+            <input id="inlinePreco-${p.id}" value="${precoFormatado}" placeholder="Preço">
+            <button onclick="salvarProdutoInline(${p.id})">Salvar</button>
+          </div>
+          <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="azul" onclick="selecionarProdutoPorId(${p.id})">Editar no painel</button>
+            ${catalogo ? "" : `<button class="cinza" onclick="excluirProdutoInline(${p.id})">Excluir</button>`}
+          </div>
+        </div>
       </div>
     `;
   });
- 
-  document.getElementById("listaProdutos").innerHTML = html;
+
+  document.getElementById("contadorProdutos").innerText = `${lista.length} produto(s) exibido(s) de ${produtosCadastrados.length}` + (mostrarSomenteSemPreco ? " — mostrando somente produtos sem preço" : "");
+  document.getElementById("listaProdutos").innerHTML = html || `<p>Nenhum produto encontrado.</p>`;
 }
- 
+
+function abrirEdicaoProduto(id) {
+  document.querySelectorAll(".produto-editor-inline").forEach(el => {
+    if (el.id !== `produto-editor-${id}`) el.classList.remove("ativo");
+  });
+
+  const editor = document.getElementById(`produto-editor-${id}`);
+  if (editor) {
+    editor.classList.toggle("ativo");
+    setTimeout(() => {
+      const preco = document.getElementById(`inlinePreco-${id}`);
+      if (preco && editor.classList.contains("ativo")) {
+        preco.focus();
+        preco.select();
+      }
+    }, 80);
+  }
+}
+
+function selecionarProdutoPorId(id) {
+  const produto = produtosCadastrados.find(p => Number(p.id) === Number(id));
+  if (produto) selecionarProduto(produto);
+}
+
 function selecionarProduto(produto) {
   produtoSelecionado = produto;
   document.getElementById("editarCodigo").value = produto.codigo || "";
   document.getElementById("editarNome").value = produto.nome;
   document.getElementById("editarNome").disabled = Number(produto.catalogo || 0) === 1;
   document.getElementById("editarCodigo").disabled = Number(produto.catalogo || 0) === 1;
-  document.getElementById("editarPreco").value = produto.preco;
+  document.getElementById("editarPreco").value = Number(produto.preco || 0).toFixed(2);
+}
+
+async function salvarProdutoInline(id) {
+  const produto = produtosCadastrados.find(p => Number(p.id) === Number(id));
+  if (!produto) return alert("Produto não encontrado");
+
+  const catalogo = Number(produto.catalogo || 0) === 1;
+  const codigo = catalogo ? (produto.codigo || "") : document.getElementById(`inlineCodigo-${id}`).value;
+  const nome = catalogo ? produto.nome : document.getElementById(`inlineNome-${id}`).value;
+  let preco = document.getElementById(`inlinePreco-${id}`).value;
+  preco = String(preco || "0").replace(",", ".");
+
+  await fetchAutenticado(`${API}/config/produto/${id}`, {
+    method: "PUT",
+    headers: jsonHeaders(),
+    body: JSON.stringify({ codigo, nome, preco })
+  });
+
+  await carregarProdutos();
 }
  
 async function editarProduto() {
@@ -1479,7 +1760,22 @@ async function editarProduto() {
   document.getElementById("editarNome").disabled = false;
   document.getElementById("editarPreco").value = "";
  
-  carregarProdutos();
+  await carregarProdutos();
+}
+
+async function excluirProdutoInline(id) {
+  const produto = produtosCadastrados.find(p => Number(p.id) === Number(id));
+  if (!produto) return alert("Produto não encontrado");
+
+  if (Number(produto.catalogo || 0) === 1) {
+    alert("Produto do catálogo padrão não pode ser excluído. Você pode deixar o preço zerado ou alterar o preço.");
+    return;
+  }
+
+  if (!confirm(`Excluir ${produto.nome}?`)) return;
+
+  await fetchAutenticado(`${API}/config/produto/${id}`, { method: "DELETE" });
+  await carregarProdutos();
 }
  
 async function excluirProduto() {
@@ -1508,7 +1804,7 @@ async function excluirProduto() {
   document.getElementById("editarNome").disabled = false;
   document.getElementById("editarPreco").value = "";
  
-  carregarProdutos();
+  await carregarProdutos();
 }
  
 async function salvarConfig() {
