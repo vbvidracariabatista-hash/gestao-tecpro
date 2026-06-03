@@ -112,6 +112,19 @@ CREATE TABLE IF NOT EXISTS sessoes (
   criado_em TEXT
 )
 `).run();
+
+
+db.prepare(`
+CREATE TABLE IF NOT EXISTS modelos_personalizados (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  usuario_id INTEGER,
+  nome TEXT,
+  categoria TEXT,
+  desenho_base64 TEXT,
+  materiais TEXT,
+  criado_em TEXT
+)
+`).run();
  
 function tabelaTemColuna(tabela, coluna) {
   return db.prepare(`PRAGMA table_info(${tabela})`).all().some(c => c.name === coluna);
@@ -898,7 +911,62 @@ function garantirCatalogoUsuario(usuarioId) {
 function garantirCatalogoTodosUsuarios() {
   db.prepare("SELECT id FROM usuarios").all().forEach(u => garantirCatalogoUsuario(u.id));
 }
- 
+
+function carregarModeloPersonalizado(id, usuarioId) {
+  const modelo = db.prepare("SELECT * FROM modelos_personalizados WHERE id=? AND usuario_id=?").get(id, usuarioId);
+  if (!modelo) return null;
+  try {
+    modelo.materiais_lista = JSON.parse(modelo.materiais || "[]");
+  } catch (e) {
+    modelo.materiais_lista = [];
+  }
+  return modelo;
+}
+
+function calcularMateriaisModeloPersonalizado(modelo, largura, altura) {
+  const materiais = {};
+  const area = (Number(largura || 0) * Number(altura || 0)) / 1000000;
+  const perimetroM = ((Number(largura || 0) * 2) + (Number(altura || 0) * 2)) / 1000;
+  const lista = Array.isArray(modelo?.materiais_lista) ? modelo.materiais_lista : [];
+
+  lista.forEach((item, index) => {
+    const nome = item.produtoNome || item.nome;
+    if (!nome) return;
+
+    const tipoCalculo = item.tipoCalculo || "unitario";
+    const quantidadeBase = Number(item.quantidade || 1) || 1;
+    let quantidade = quantidadeBase;
+    let unidade = "un";
+
+    if (tipoCalculo === "meia_barra") {
+      quantidade = quantidadeBase * 0.5;
+      unidade = "barra";
+    } else if (tipoCalculo === "barra_inteira") {
+      quantidade = quantidadeBase;
+      unidade = "barra";
+    } else if (tipoCalculo === "medida_m2") {
+      quantidade = area * quantidadeBase;
+      unidade = "m²";
+    } else if (tipoCalculo === "perimetro_m") {
+      quantidade = perimetroM * quantidadeBase;
+      unidade = "m";
+    }
+
+    const preco = getPreco(nome);
+    const custo = preco * quantidade;
+    const chave = materiais[nome] ? `${nome} (${index + 1})` : nome;
+
+    materiais[chave] = {
+      quantidade: Number(quantidade.toFixed ? quantidade.toFixed(3) : quantidade),
+      unidade,
+      preco,
+      custo,
+      calculo_manual: true
+    };
+  });
+
+  return materiais;
+}
  
 // Usuário inicial para preservar seus dados atuais.
 // Depois você pode criar outros usuários pela tela de cadastro.
@@ -1123,6 +1191,75 @@ app.post("/perfil", requireAuth, (req, res) => {
  
 // Daqui para baixo, todo o sistema exige login.
 app.use(requireAuth);
+
+// ============================
+// MODELOS PERSONALIZADOS
+// ============================
+
+app.get("/modelos", (req, res) => {
+  const lista = db.prepare(`
+    SELECT id, nome, categoria, desenho_base64, materiais, criado_em
+    FROM modelos_personalizados
+    WHERE usuario_id=?
+    ORDER BY nome
+  `).all(usuarioAtualId());
+
+  res.json(lista.map(m => ({
+    ...m,
+    materiais: (() => {
+      try { return JSON.parse(m.materiais || "[]"); } catch (e) { return []; }
+    })()
+  })));
+});
+
+app.post("/modelos", (req, res) => {
+  const { nome, categoria, desenhoBase64, materiais } = req.body;
+
+  if (!nome) return res.status(400).json({ erro: "Informe o nome do modelo" });
+  if (!Array.isArray(materiais) || !materiais.length) {
+    return res.status(400).json({ erro: "Adicione pelo menos um material ao modelo" });
+  }
+
+  const result = db.prepare(`
+    INSERT INTO modelos_personalizados (usuario_id, nome, categoria, desenho_base64, materiais, criado_em)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(
+    usuarioAtualId(),
+    nome,
+    categoria || "personalizado",
+    desenhoBase64 || "",
+    JSON.stringify(materiais || []),
+    new Date().toISOString()
+  );
+
+  res.json({ ok: true, id: result.lastInsertRowid });
+});
+
+app.put("/modelos/:id", (req, res) => {
+  const { nome, categoria, desenhoBase64, materiais } = req.body;
+  const atual = db.prepare("SELECT * FROM modelos_personalizados WHERE id=? AND usuario_id=?").get(req.params.id, usuarioAtualId());
+  if (!atual) return res.status(404).json({ erro: "Modelo não encontrado" });
+
+  db.prepare(`
+    UPDATE modelos_personalizados
+    SET nome=?, categoria=?, desenho_base64=?, materiais=?
+    WHERE id=? AND usuario_id=?
+  `).run(
+    nome || atual.nome,
+    categoria || atual.categoria || "personalizado",
+    desenhoBase64 !== undefined ? desenhoBase64 : atual.desenho_base64,
+    JSON.stringify(Array.isArray(materiais) ? materiais : JSON.parse(atual.materiais || "[]")),
+    req.params.id,
+    usuarioAtualId()
+  );
+
+  res.json({ ok: true });
+});
+
+app.delete("/modelos/:id", (req, res) => {
+  db.prepare("DELETE FROM modelos_personalizados WHERE id=? AND usuario_id=?").run(req.params.id, usuarioAtualId());
+  res.json({ ok: true });
+});
  
  
 // ============================
@@ -1787,6 +1924,30 @@ app.get("/orcamento", (req, res) => {
   if (!largura || !altura) {
     return res.json({ erro: "Informe largura e altura" });
   }
+
+  if (String(tipo || "").startsWith("modelo_")) {
+    const modeloId = Number(String(tipo).replace("modelo_", ""));
+    const modelo = carregarModeloPersonalizado(modeloId, usuarioAtualId());
+
+    if (!modelo) {
+      return res.json({ erro: "Modelo personalizado não encontrado" });
+    }
+
+    let materiais = calcularMateriaisModeloPersonalizado(modelo, largura, altura);
+    materiais = adicionarAvulsos(materiais, avulsos);
+    const totais = calcularTotais(materiais, margem);
+
+    return res.json({
+      tipo: `${modelo.nome} ${largura}x${altura}`,
+      categoria: modelo.categoria || "personalizado",
+      modelo_personalizado: true,
+      modelo_id: modelo.id,
+      desenho_base64: modelo.desenho_base64 || "",
+      prazo: definirPrazo(categoria, espessura),
+      ...totais,
+      materiais
+    });
+  }
  
   if (tipo === "porta4" || tipo === "porta4_puxador" || tipo === "porta4_sem_puxador" || tipo === "porta150" || tipo === "porta2" || tipo === "porta_esconder" || tipo === "janela2" || tipo === "janela4") {
     const folhas = (tipo === "porta4" || tipo === "porta4_puxador" || tipo === "porta4_sem_puxador" || tipo === "janela4") ? 4 : 2;
@@ -2175,7 +2336,35 @@ function encontrarImagemProjeto(item) {
   return null;
 }
  
+function bufferImagemBase64(dataUri) {
+  if (!dataUri) return null;
+  try {
+    const base64 = String(dataUri).includes(",") ? String(dataUri).split(",").pop() : String(dataUri);
+    return Buffer.from(base64, "base64");
+  } catch (e) {
+    return null;
+  }
+}
+
 function desenharElevacaoProjeto(doc, x, y, w, h, item) {
+  const desenhoPersonalizado = item?.resultado?.desenho_base64 || item?.formulario?.desenho_base64 || "";
+
+  if (desenhoPersonalizado) {
+    const buffer = bufferImagemBase64(desenhoPersonalizado);
+    if (buffer) {
+      try {
+        doc.image(buffer, x, y, {
+          fit: [w, h],
+          align: "center",
+          valign: "center"
+        });
+        return;
+      } catch (e) {
+        // Se a imagem enviada pelo usuário falhar, usa o desenho padrão abaixo.
+      }
+    }
+  }
+
   const imagem = encontrarImagemProjeto(item);
  
   if (imagem) {

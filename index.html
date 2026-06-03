@@ -370,6 +370,42 @@
       }
     }
 
+
+    .modelo-card, .material-modelo-item {
+      background: #f8fbff;
+      border-left: 5px solid #003366;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+
+    .modelo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .modelo-preview {
+      max-width: 220px;
+      max-height: 140px;
+      display: block;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .modelo-acoes button {
+      width: auto;
+      margin-right: 8px;
+      padding: 8px 12px;
+    }
+
+    @media (max-width: 900px) {
+      .modelo-grid { grid-template-columns: 1fr; }
+    }
+
   </style>
 </head>
  
@@ -411,6 +447,7 @@
   <button onclick="novoOrcamento()">➕ Novo Orçamento</button>
   <button onclick="mostrar('orcamentosSalvos')">📁 Orçamentos</button>
   <button onclick="mostrar('produtos')">📦 Produtos</button>
+  <button onclick="mostrar('modelos')">🧩 Modelos</button>
   <button onclick="mostrar('config')">⚙️ Config</button>
   <span id="statusUsuario" class="status-usuario"></span>
   <button class="sair" onclick="sair()">Sair</button>
@@ -453,6 +490,7 @@
         <option value="box">Box frontal</option>
         <option value="box_canto">Box de canto</option>
       </optgroup>
+      <optgroup label="Modelos personalizados" id="optModelosPersonalizados"></optgroup>
     </select>
  
     <select id="corVidro">
@@ -587,6 +625,52 @@
     <button class="calc cinza" onclick="excluirProduto()">Excluir Produto</button>
   </div>
  
+
+  <div id="modelos" class="card" style="display:none;">
+    <h3>Modelos Personalizados</h3>
+    <p class="campo-ajuda">Cadastre instalações que não existem nos modelos prontos. Depois elas aparecem no campo Tipo do orçamento.</p>
+
+    <div class="config-bloco">
+      <h4>Adicionar modelo</h4>
+      <input id="modeloNome" placeholder="Nome do modelo. Ex: Porta única de correr">
+      <select id="modeloCategoria">
+        <option value="porta">Porta</option>
+        <option value="janela">Janela</option>
+        <option value="box">Box</option>
+        <option value="espelho">Espelho</option>
+        <option value="outro">Outro</option>
+      </select>
+
+      <label>Desenho / imagem do modelo:</label>
+      <input id="modeloDesenho" type="file" accept="image/*">
+      <img id="modeloPreview" class="modelo-preview" style="display:none;">
+
+      <hr>
+      <h4>Materiais utilizados</h4>
+      <div class="modelo-grid">
+        <select id="modeloProdutoMaterial">
+          <option value="">Selecione o material/produto</option>
+        </select>
+        <select id="modeloTipoCalculo">
+          <option value="unitario">Quantidade normal / unidade</option>
+          <option value="meia_barra">Meia barra</option>
+          <option value="barra_inteira">Barra inteira</option>
+          <option value="medida_m2">Medida da peça em m²</option>
+          <option value="perimetro_m">Perímetro em metros</option>
+        </select>
+        <input id="modeloQtdMaterial" type="number" value="1" placeholder="Quantidade">
+        <button class="calc azul" onclick="adicionarMaterialModelo()">Adicionar material ao modelo</button>
+      </div>
+
+      <div id="listaMateriaisModelo"></div>
+      <button class="calc" onclick="salvarModeloPersonalizado()">Salvar Modelo</button>
+    </div>
+
+    <hr>
+    <h3>Modelos cadastrados</h3>
+    <div id="listaModelos"></div>
+  </div>
+
   <div id="config" class="card" style="display:none;">
     <h3>Configurações</h3>
  
@@ -870,6 +954,7 @@ async function iniciarSistemaLogado() {
     usuarioLogado = data.usuario;
     mostrarSistema();
     await carregarProdutos();
+    await carregarModelosPersonalizados();
     await carregarConfig();
     await carregarPerfilEmpresa();
     const voltou = carregarLocal();
@@ -884,18 +969,26 @@ let produtosAvulsos = [];
 let produtosCadastrados = [];
 let produtoSelecionado = null;
 let itensOrcamento = [];
+let modelosPersonalizados = [];
+let materiaisModelo = [];
+let desenhoModeloBase64 = "";
  
 function mostrar(tela) {
   document.getElementById("inicio").style.display = "none";
   document.getElementById("orcamento").style.display = "none";
   document.getElementById("orcamentosSalvos").style.display = "none";
   document.getElementById("produtos").style.display = "none";
+  document.getElementById("modelos").style.display = "none";
   document.getElementById("config").style.display = "none";
  
   document.getElementById(tela).style.display = "block";
  
   if (tela === "orcamentosSalvos") {
     carregarOrcamentos();
+  }
+
+  if (tela === "modelos") {
+    carregarModelosPersonalizados();
   }
 }
  
@@ -1114,11 +1207,23 @@ function getFormularioItem() {
     tipoEspelho: document.getElementById("tipoEspelho").value,
     largura: document.getElementById("largura").value,
     altura: document.getElementById("altura").value,
+    desenho_base64: (() => {
+      const tipoAtual = document.getElementById("tipo").value;
+      if (!String(tipoAtual || "").startsWith("modelo_")) return "";
+      const id = Number(String(tipoAtual).replace("modelo_", ""));
+      const modelo = modelosPersonalizados.find(m => Number(m.id) === id);
+      return modelo ? (modelo.desenho_base64 || "") : "";
+    })(),
     avulsos: JSON.parse(JSON.stringify(produtosAvulsos))
   };
 }
  
 function nomeTipo(tipo) {
+  if (String(tipo || "").startsWith("modelo_")) {
+    const id = Number(String(tipo).replace("modelo_", ""));
+    const modelo = modelosPersonalizados.find(m => Number(m.id) === id);
+    return modelo ? modelo.nome : "Modelo personalizado";
+  }
   if (tipo === "porta4" || tipo === "porta4_puxador") return "Porta 4 folhas com puxador";
   if (tipo === "porta4_sem_puxador") return "Porta 4 folhas sem puxador";
   if (tipo === "porta150" || tipo === "porta2") return "Porta 2 folhas";
@@ -1590,6 +1695,7 @@ async function carregarProdutos() {
   const lista = await res.json();
  
   produtosCadastrados = lista;
+  preencherProdutosMaterialModelo();
   renderizarAtalhosLetras();
   renderizarProdutosFiltrados();
 }
@@ -1807,6 +1913,184 @@ async function excluirProduto() {
   await carregarProdutos();
 }
  
+
+function preencherProdutosMaterialModelo() {
+  const select = document.getElementById("modeloProdutoMaterial");
+  if (!select) return;
+
+  let html = `<option value="">Selecione o material/produto</option>`;
+  produtosCadastrados.forEach(p => {
+    const cod = p.codigo ? `${escapeHtml(p.codigo)} – ` : "";
+    html += `<option value="${escapeHtml(p.nome)}">${cod}${escapeHtml(p.nome)}</option>`;
+  });
+  select.innerHTML = html;
+}
+
+function atualizarSelectModelosOrcamento() {
+  const opt = document.getElementById("optModelosPersonalizados");
+  if (!opt) return;
+
+  let html = "";
+  modelosPersonalizados.forEach(m => {
+    html += `<option value="modelo_${m.id}">${escapeHtml(m.nome)}</option>`;
+  });
+  opt.innerHTML = html;
+}
+
+async function carregarModelosPersonalizados() {
+  const res = await fetchAutenticado(`${API}/modelos`);
+  const lista = await res.json();
+  modelosPersonalizados = Array.isArray(lista) ? lista : [];
+  atualizarSelectModelosOrcamento();
+  renderizarModelosPersonalizados();
+}
+
+function renderizarMateriaisModelo() {
+  const div = document.getElementById("listaMateriaisModelo");
+  if (!div) return;
+
+  if (!materiaisModelo.length) {
+    div.innerHTML = `<p class="campo-ajuda">Nenhum material adicionado ao modelo ainda.</p>`;
+    return;
+  }
+
+  let html = "";
+  materiaisModelo.forEach((m, index) => {
+    html += `
+      <div class="material-modelo-item">
+        <b>${index + 1}. ${escapeHtml(m.produtoNome)}</b><br>
+        Tipo: ${escapeHtml(labelTipoCalculoModelo(m.tipoCalculo))} | Qtd: ${m.quantidade}
+        <div class="modelo-acoes">
+          <button class="calc cinza" onclick="removerMaterialModelo(${index})">Remover</button>
+        </div>
+      </div>
+    `;
+  });
+  div.innerHTML = html;
+}
+
+function labelTipoCalculoModelo(tipo) {
+  if (tipo === "meia_barra") return "Meia barra";
+  if (tipo === "barra_inteira") return "Barra inteira";
+  if (tipo === "medida_m2") return "Medida da peça em m²";
+  if (tipo === "perimetro_m") return "Perímetro em metros";
+  return "Quantidade normal / unidade";
+}
+
+function adicionarMaterialModelo() {
+  const produtoNome = document.getElementById("modeloProdutoMaterial").value;
+  const tipoCalculo = document.getElementById("modeloTipoCalculo").value;
+  const quantidade = Number(document.getElementById("modeloQtdMaterial").value) || 1;
+
+  if (!produtoNome) {
+    alert("Selecione o material/produto do modelo");
+    return;
+  }
+
+  materiaisModelo.push({ produtoNome, tipoCalculo, quantidade });
+  document.getElementById("modeloProdutoMaterial").value = "";
+  document.getElementById("modeloTipoCalculo").value = "unitario";
+  document.getElementById("modeloQtdMaterial").value = "1";
+  renderizarMateriaisModelo();
+}
+
+function removerMaterialModelo(index) {
+  materiaisModelo.splice(index, 1);
+  renderizarMateriaisModelo();
+}
+
+async function salvarModeloPersonalizado() {
+  const nome = document.getElementById("modeloNome").value.trim();
+  const categoria = document.getElementById("modeloCategoria").value;
+
+  if (!nome) {
+    alert("Informe o nome do modelo");
+    return;
+  }
+
+  if (!materiaisModelo.length) {
+    alert("Adicione pelo menos um material ao modelo");
+    return;
+  }
+
+  const body = {
+    nome,
+    categoria,
+    desenhoBase64: desenhoModeloBase64,
+    materiais: materiaisModelo
+  };
+
+  const res = await fetchAutenticado(`${API}/modelos`, {
+    method: "POST",
+    headers: jsonHeaders(),
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (!res.ok || data.erro) return alert(data.erro || "Erro ao salvar modelo");
+
+  document.getElementById("modeloNome").value = "";
+  document.getElementById("modeloCategoria").value = "porta";
+  document.getElementById("modeloDesenho").value = "";
+  document.getElementById("modeloPreview").style.display = "none";
+  desenhoModeloBase64 = "";
+  materiaisModelo = [];
+  renderizarMateriaisModelo();
+  await carregarModelosPersonalizados();
+  alert("Modelo salvo! Ele já aparece no campo Tipo do orçamento.");
+}
+
+function renderizarModelosPersonalizados() {
+  const div = document.getElementById("listaModelos");
+  if (!div) return;
+
+  if (!modelosPersonalizados.length) {
+    div.innerHTML = `<p>Nenhum modelo personalizado cadastrado ainda.</p>`;
+    return;
+  }
+
+  let html = "";
+  modelosPersonalizados.forEach(m => {
+    const materiais = Array.isArray(m.materiais) ? m.materiais : [];
+    html += `
+      <div class="modelo-card">
+        <b>${escapeHtml(m.nome)}</b><br>
+        Categoria: ${escapeHtml(m.categoria || "personalizado")}<br>
+        Materiais: ${materiais.length}<br>
+        ${m.desenho_base64 ? `<img src="${m.desenho_base64}" class="modelo-preview">` : ""}
+        <div class="modelo-acoes">
+          <button class="calc cinza" onclick="excluirModeloPersonalizado(${m.id})">Excluir modelo</button>
+        </div>
+      </div>
+    `;
+  });
+  div.innerHTML = html;
+}
+
+async function excluirModeloPersonalizado(id) {
+  if (!confirm("Excluir este modelo personalizado?")) return;
+
+  const res = await fetchAutenticado(`${API}/modelos/${id}`, { method: "DELETE" });
+  const data = await res.json();
+  if (!res.ok || data.erro) return alert(data.erro || "Erro ao excluir modelo");
+
+  await carregarModelosPersonalizados();
+}
+
+document.addEventListener("change", function(e) {
+  if (e.target && e.target.id === "modeloDesenho") {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      desenhoModeloBase64 = reader.result;
+      const img = document.getElementById("modeloPreview");
+      img.src = desenhoModeloBase64;
+      img.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
 async function salvarConfig() {
   const usarSobra = document.getElementById("usarSobra").checked;
   const usarMeia = document.getElementById("usarMeia").checked;
