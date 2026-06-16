@@ -1769,128 +1769,112 @@ function adicionarAvulsos(materiais, avulsos = []) {
 function montarMateriaisCCTP({ tipo, largura, altura, corAluminio = "natural_fosco" }) {
   const cctp = nomeCCTP(corAluminio);
   const siliconeAcabamento = nomeSiliconeAcabamento(corAluminio);
- 
-  const base = {
-    [cctp]: {
-      quantidade: 1,
-      ...calcularMaterial(cctp, largura),
-      preco: getPreco(cctp)
-    },
-    "Silicone Incolor": {
-      quantidade: 1,
-      preco: getPreco("Silicone Incolor")
-    },
-    "Parafuso": {
-      quantidade: 15,
-      preco: getPreco("Parafuso")
-    },
-    "Bucha": {
-      quantidade: 15,
-      preco: getPreco("Bucha")
-    }
+
+  function itemBarra(nome, qtd, totalMm) {
+    return {
+      quantidade: qtd,
+      ...calcularMaterial(nome, totalMm),
+      preco: getPreco(nome)
+    };
+  }
+
+  function itemUn(nome, qtd) {
+    return {
+      quantidade: qtd,
+      preco: getPreco(nome)
+    };
+  }
+
+  const baseFixacao = {
+    "Silicone Incolor": itemUn("Silicone Incolor", 1),
+    "Parafuso": itemUn("Parafuso", 15),
+    "Bucha": itemUn("Bucha", 15)
   };
- 
+
   if (siliconeAcabamento !== "Silicone Incolor") {
-    base[siliconeAcabamento] = {
-      quantidade: 1,
-      preco: getPreco(siliconeAcabamento)
-    };
+    baseFixacao[siliconeAcabamento] = itemUn(siliconeAcabamento, 1);
   }
- 
-  if (tipo === "porta4" || tipo === "porta4_puxador" || tipo === "porta4_sem_puxador" || tipo === "janela4") {
+
+  const pu8 = nomePerfilPorCor("PU", 8, corAluminio);
+  const pu10 = nomePerfilPorCor("PU", 10, corAluminio);
+  const vedaPoeira8 = nomePerfilPorCor("Veda Poeira", 8, corAluminio);
+  const vedaPress8 = nomePerfilPorCor("Veda Press", 8, corAluminio);
+
+  if (tipo === "porta4" || tipo === "porta4_puxador" || tipo === "porta4_sem_puxador") {
+    const materiais = {
+      [pu8]: itemBarra(pu8, 2, altura * 2),
+      [vedaPoeira8]: itemBarra(vedaPoeira8, 2, altura * 2),
+      [vedaPress8]: itemBarra(vedaPress8, 1, altura),
+      [cctp]: itemBarra(cctp, 1, largura),
+      ...baseFixacao,
+      "Fechadura 3530 V/V": itemUn("Fechadura 3530 V/V", 1),
+      "Roldana": itemUn("Roldana", 4),
+      "Batedor central": itemUn("Batedor central", 1),
+      "Batedor inferior": itemUn("Batedor inferior", 2)
+    };
+
+    if (tipo === "porta4" || tipo === "porta4_puxador") {
+      materiais["Puxador"] = itemUn("Puxador", 2);
+    }
+
+    return materiais;
+  }
+
+  if (tipo === "janela4") {
     return {
-      [nomePerfilPorCor("PU", 8, corAluminio)]: {
-        quantidade: 2,
-        ...calcularMaterial(nomePerfilPorCor("PU", 8, corAluminio), altura * 2),
-        preco: getPreco(nomePerfilPorCor("PU", 8, corAluminio))
-      },
-      [nomePerfilPorCor("Veda Poeira", 8, corAluminio)]: {
-        quantidade: 2,
-        ...calcularMaterial(nomePerfilPorCor("Veda Poeira", 8, corAluminio), altura * 2),
-        preco: getPreco(nomePerfilPorCor("Veda Poeira", 8, corAluminio))
-      },
-      [nomePerfilPorCor("Veda Press", 8, corAluminio)]: {
-        quantidade: 1,
-        ...calcularMaterial(nomePerfilPorCor("Veda Press", 8, corAluminio), altura),
-        preco: getPreco(nomePerfilPorCor("Veda Press", 8, corAluminio))
-      },
-      ...base,
-      "Puxador": {
-        quantidade: tipo === "porta4_sem_puxador" || tipo === "janela4" ? 0 : 2,
-        preco: getPreco("Puxador")
-      },
-      "Fechadura 3530 V/V": {
-        quantidade: 1,
-        preco: getPreco("Fechadura 3530 V/V")
-      },
-      "Roldana": {
-        quantidade: 4,
-        preco: getPreco("Roldana")
-      },
-      "Batedor central": {
-        quantidade: 1,
-        preco: getPreco("Batedor central")
-      },
-      "Batedor inferior": {
-        quantidade: 2,
-        preco: getPreco("Batedor inferior")
-      }
+      [pu8]: itemBarra(pu8, 2, altura * 2),
+      [vedaPoeira8]: itemBarra(vedaPoeira8, 2, altura * 2),
+      [vedaPress8]: itemBarra(vedaPress8, 1, altura),
+      [cctp]: itemBarra(cctp, 1, largura),
+      ...baseFixacao,
+      "Bate-fecha V/V": itemUn("Bate-fecha V/V", 1),
+      "Roldana": itemUn("Roldana", 4),
+      "Batedor central": itemUn("Batedor central", 1),
+      "Batedor inferior": itemUn("Batedor inferior", 2)
     };
   }
- 
-  if (tipo === "porta150" || tipo === "porta2" || tipo === "porta_esconder" || tipo === "janela2") {
+
+  if (tipo === "porta150" || tipo === "porta2" || tipo === "porta2_puxador" || tipo === "porta2_sem_puxador" || tipo === "porta_esconder") {
+    const materiais = {
+      [pu8]: itemBarra(pu8, 1, altura),
+      [pu10]: itemBarra(pu10, 1, altura),
+      [vedaPoeira8]: itemBarra(vedaPoeira8, 1, altura),
+      [cctp]: itemBarra(cctp, 1, largura),
+      ...baseFixacao,
+      "Fechadura 3530 V/A": itemUn("Fechadura 3530 V/A", 1),
+      "Roldana": itemUn("Roldana", 2),
+      "Batedor inferior": itemUn("Batedor inferior", 1)
+    };
+
+    if (tipo === "porta150" || tipo === "porta2" || tipo === "porta2_puxador") {
+      materiais["Puxador"] = itemUn("Puxador", 1);
+    }
+
+    return materiais;
+  }
+
+  if (tipo === "janela2") {
     return {
-      [nomePerfilPorCor("PU", 8, corAluminio)]: {
-        quantidade: 1,
-        ...calcularMaterial(nomePerfilPorCor("PU", 8, corAluminio), altura),
-        preco: getPreco(nomePerfilPorCor("PU", 8, corAluminio))
-      },
-      [nomePerfilPorCor("PU", 10, corAluminio)]: {
-        quantidade: 1,
-        ...calcularMaterial(nomePerfilPorCor("PU", 10, corAluminio), altura),
-        preco: getPreco(nomePerfilPorCor("PU", 10, corAluminio))
-      },
-      [nomePerfilPorCor("Veda Poeira", 8, corAluminio)]: {
-        quantidade: 1,
-        ...calcularMaterial(nomePerfilPorCor("Veda Poeira", 8, corAluminio), altura),
-        preco: getPreco(nomePerfilPorCor("Veda Poeira", 8, corAluminio))
-      },
-      ...base,
-      "Puxador": {
-        quantidade: tipo === "janela2" ? 0 : 1,
-        preco: getPreco("Puxador")
-      },
-      "Fechadura 3530 V/A": {
-        quantidade: 1,
-        preco: getPreco("Fechadura 3530 V/A")
-      },
-      "Bate-fecha v/v": {
-        quantidade: tipo === "janela2" ? 1 : 0,
-        preco: getPreco("Bate-fecha v/v")
-      },
-      "Bate-fecha v/a": {
-        quantidade: tipo === "janela2" ? 1 : 0,
-        preco: getPreco("Bate-fecha v/a")
-      },
-      "Roldana": {
-        quantidade: 2,
-        preco: getPreco("Roldana")
-      },
-      "Batedor central": {
-        quantidade: 1,
-        preco: getPreco("Batedor central")
-      }
+      [pu8]: itemBarra(pu8, 1, altura),
+      [pu10]: itemBarra(pu10, 1, altura),
+      [vedaPoeira8]: itemBarra(vedaPoeira8, 1, altura),
+      [cctp]: itemBarra(cctp, 1, largura),
+      ...baseFixacao,
+      "Bate-fecha V/A": itemUn("Bate-fecha V/A", 1),
+      "Roldana": itemUn("Roldana", 2),
+      "Batedor inferior": itemUn("Batedor inferior", 1)
     };
   }
- 
+
   return {};
 }
- 
- 
+
+
 function nomeTipoOrcamento(tipo, largura, altura) {
   if (tipo === "porta4" || tipo === "porta4_puxador") return `Porta 4 folhas com puxador ${largura}x${altura}`;
   if (tipo === "porta4_sem_puxador") return `Porta 4 folhas sem puxador ${largura}x${altura}`;
-  if (tipo === "porta150" || tipo === "porta2") return `Porta 2 folhas ${largura}x${altura}`;
+  if (tipo === "porta150" || tipo === "porta2" || tipo === "porta2_puxador") return `Porta 2 folhas com puxador ${largura}x${altura}`;
+  if (tipo === "porta2_sem_puxador") return `Porta 2 folhas sem puxador ${largura}x${altura}`;
   if (tipo === "porta_esconder") return `Porta de esconder ${largura}x${altura}`;
   if (tipo === "janela4") return `Janela 4 folhas ${largura}x${altura}`;
   if (tipo === "janela2") return `Janela 2 folhas ${largura}x${altura}`;
@@ -1949,7 +1933,7 @@ app.get("/orcamento", (req, res) => {
     });
   }
  
-  if (tipo === "porta4" || tipo === "porta4_puxador" || tipo === "porta4_sem_puxador" || tipo === "porta150" || tipo === "porta2" || tipo === "porta_esconder" || tipo === "janela2" || tipo === "janela4") {
+  if (tipo === "porta4" || tipo === "porta4_puxador" || tipo === "porta4_sem_puxador" || tipo === "porta150" || tipo === "porta2" || tipo === "porta2_puxador" || tipo === "porta2_sem_puxador" || tipo === "porta_esconder" || tipo === "janela2" || tipo === "janela4") {
     const folhas = (tipo === "porta4" || tipo === "porta4_puxador" || tipo === "porta4_sem_puxador" || tipo === "janela4") ? 4 : 2;
  
     let materiais = montarMateriaisCCTP({
@@ -2029,6 +2013,11 @@ app.get("/orcamento", (req, res) => {
       "Silicone Incolor": {
         quantidade: 1,
         preco: getPreco("Silicone Incolor")
+      },
+      [nomePerfilPorCor("Cantoneira", 20, corAluminio)]: {
+        quantidade: 1,
+        ...calcularMaterial(nomePerfilPorCor("Cantoneira", 20, corAluminio), altura),
+        preco: getPreco(nomePerfilPorCor("Cantoneira", 20, corAluminio))
       }
     };
  
